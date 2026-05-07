@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - {{ arena_name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <p class="text-gray-600">Manage bookings and payments</p>
+        </div>
+        <a href="/admin/logout" class="btn btn-danger">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Total Bookings</p>
+                    <p class="text-3xl font-bold text-blue-600">{{ stats.total_bookings }}</p>
+                </div>
+                <i class="fas fa-calendar-check text-4xl text-blue-200"></i>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Pending Payments</p>
+                    <p class="text-3xl font-bold text-yellow-600">{{ stats.pending_payments }}</p>
+                </div>
+                <i class="fas fa-clock text-4xl text-yellow-200"></i>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Paid Bookings</p>
+                    <p class="text-3xl font-bold text-green-600">{{ stats.paid_bookings }}</p>
+                </div>
+                <i class="fas fa-check-circle text-4xl text-green-200"></i>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Total Revenue</p>
+                    <p class="text-3xl font-bold text-purple-600">₦{{ "{:,.0f}".format(stats.total_revenue) }}</p>
+                </div>
+                <i class="fas fa-money-bill-wave text-4xl text-purple-200"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bookings Table -->
+    <div class="card">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="card-header">
+                <i class="fas fa-list"></i> All Bookings
+            </h2>
+            
+            <!-- Filter -->
+            <div class="flex gap-2">
+                <form method="GET" class="flex gap-2">
+                    <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="">All Statuses</option>
+                        <option value="PENDING" {% if current_status == 'PENDING' %}selected{% endif %}>Pending</option>
+                        <option value="PAID" {% if current_status == 'PAID' %}selected{% endif %}>Paid</option>
+                        <option value="FAILED" {% if current_status == 'FAILED' %}selected{% endif %}>Failed</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if bookings.items %}
+        <div class="overflow-x-auto">
+            <table class="table">
+                <thead>
+                    <tr style="background-color: #f3f4f6;">
+                        <th style="font-weight: 700;">Booking ID</th>
+                        <th style="font-weight: 700;">Team Name</th>
+                        <th style="font-weight: 700;">Date & Time</th>
+                        <th style="font-weight: 700;">Phone</th>
+                        <th style="font-weight: 700;">Amount</th>
+                        <th style="font-weight: 700;">Payment Status</th>
+                        <th style="font-weight: 700;">Method</th>
+                        <th style="font-weight: 700;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings.items %}
+                    <tr>
+                        <td>
+                            <span class="font-mono font-bold text-blue-600">{{ booking.booking_id }}</span>
+                        </td>
+                        <td>{{ booking.team_name }}</td>
+                        <td>
+                            <div>
+                                <p class="font-bold">{{ booking.date.strftime('%b %d, %Y') }}</p>
+                                <p class="text-sm text-gray-600">{{ booking.time_slot }}</p>
+                            </div>
+                        </td>
+                        <td>{{ booking.phone }}</td>
+                        <td class="font-bold">₦{{ "%.2f"|format(booking.amount) }}</td>
+                        <td>
+                            {% if booking.payment_status == 'PAID' %}
+                                <span class="badge badge-success">✓ PAID</span>
+                            {% elif booking.payment_status == 'PENDING' %}
+                                <span class="badge badge-warning">⏳ PENDING</span>
+                            {% elif booking.payment_status == 'FAILED' %}
+                                <span class="badge badge-danger">✗ FAILED</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if booking.payment_method == 'TRANSFER' %}
+                                <span class="text-sm">Bank Transfer</span>
+                            {% elif booking.payment_method == 'CARD' %}
+                                <span class="text-sm">Card</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="flex gap-2">
+                                {% if booking.payment_status == 'PENDING' %}
+                                <form method="POST" action="/admin/booking/{{ booking.id }}/confirm-payment" style="display: inline;">
+                                    <button type="submit" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                        <i class="fas fa-check"></i> Confirm
+                                    </button>
+                                </form>
+                                {% endif %}
+                                
+                                <form method="POST" action="/admin/booking/{{ booking.id }}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this booking?');">
+                                    <button type="submit" class="btn btn-danger" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if bookings.pages > 1 %}
+        <div class="mt-6 flex justify-center gap-2">
+            {% if bookings.has_prev %}
+                <a href="?page={{ bookings.prev_num }}{% if current_status %}&status={{ current_status }}{% endif %}" class="btn btn-outline">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+            {% endif %}
+
+            {% for page_num in bookings.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num == bookings.page %}
+                        <button class="btn btn-primary" disabled>{{ page_num }}</button>
+                    {% else %}
+                        <a href="?page={{ page_num }}{% if current_status %}&status={{ current_status }}{% endif %}" class="btn btn-outline">
+                            {{ page_num }}
+                        </a>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+
+            {% if bookings.has_next %}
+                <a href="?page={{ bookings.next_num }}{% if current_status %}&status={{ current_status }}{% endif %}" class="btn btn-outline">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: #6b7280;">
+            <i class="fas fa-inbox text-4xl mb-3" style="display: block; margin-bottom: 1rem;"></i>
+            <p>No bookings found</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Export Data -->
+    <div class="card bg-gray-50">
+        <h3 class="font-bold text-lg mb-3">
+            <i class="fas fa-download"></i> Export Data
+        </h3>
+        
+        <p class="text-gray-600 mb-4">Export all bookings data for analysis and reporting</p>
+        
+        <a href="/admin/api/bookings" class="btn btn-primary" download="bookings.json">
+            <i class="fas fa-download"></i> Download as JSON
+        </a>
+    </div>
+</div>
+{% endblock %}

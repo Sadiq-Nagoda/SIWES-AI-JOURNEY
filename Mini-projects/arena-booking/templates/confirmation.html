@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Booking Confirmed — ArenaBook{% endblock %}
+
+{% block content %}
+{% if booking %}
+<div style="max-width:560px; margin:0 auto; text-align:center;">
+
+  <!-- Success icon -->
+  <div style="width:80px; height:80px; background:var(--green-glow); border:2px solid var(--green);
+              border-radius:50%; display:flex; align-items:center; justify-content:center;
+              margin:0 auto 1.5rem; font-size:2rem; animation:popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);">
+    ✅
+  </div>
+
+  <div class="eyebrow" style="color:var(--green); font-size:0.75rem; font-weight:700;
+       text-transform:uppercase; letter-spacing:0.15em; margin-bottom:0.4rem;">
+    Booking Confirmed
+  </div>
+  <h1 style="font-family:var(--font-head); font-size:2.8rem; letter-spacing:2px; margin-bottom:0.5rem;">
+    YOU'RE BOOKED!
+  </h1>
+  <p style="color:var(--text-muted); margin-bottom:2rem;">
+    Your pitch is reserved. See you on the field, <strong style="color:var(--text);">{{ booking.team }}</strong>!
+  </p>
+
+  <!-- Receipt card -->
+  <div class="card" style="text-align:left; border-color:rgba(0,230,118,0.25); margin-bottom:1.5rem;">
+
+    <!-- Receipt header -->
+    <div style="display:flex; justify-content:space-between; align-items:center;
+                padding-bottom:1rem; border-bottom:1px solid var(--border); margin-bottom:1rem;">
+      <div style="font-family:var(--font-head); font-size:1.3rem; letter-spacing:2px; color:var(--green);">
+        BOOKING RECEIPT
+      </div>
+      <div style="font-size:0.75rem; color:var(--text-muted);">
+        ID: <strong style="color:var(--amber);">#{{ booking.booking_id }}</strong>
+      </div>
+    </div>
+
+    <!-- Receipt rows -->
+    {% set rows = [
+      ('Team Name', booking.team, 'var(--text)'),
+      ('Phone', booking.phone, 'var(--text)'),
+      ('Date', booking.date, 'var(--amber)'),
+      ('Time Slot', booking.slot, 'var(--amber)'),
+      ('Pitch Type', booking.pitch, 'var(--text)'),
+      ('Status', 'Confirmed', 'var(--green)'),
+    ] %}
+    {% for label, value, color in rows %}
+    <div style="display:flex; justify-content:space-between; align-items:center;
+                padding:0.55rem 0; border-bottom:1px solid var(--border);">
+      <span style="font-size:0.78rem; font-weight:700; text-transform:uppercase;
+                   letter-spacing:0.08em; color:var(--text-muted);">{{ label }}</span>
+      <span style="font-weight:600; color:{{ color }};">{{ value }}</span>
+    </div>
+    {% endfor %}
+
+    <!-- QR placeholder -->
+    <div style="margin-top:1.2rem; text-align:center; padding:1rem;
+                background:var(--bg-alt); border-radius:var(--radius);
+                border:1px dashed var(--border-hi);">
+      <div style="font-size:2rem; margin-bottom:0.3rem;">📱</div>
+      <p style="font-size:0.75rem; color:var(--text-sub);">
+        QR code would appear here (Paystack upgrade)
+      </p>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div style="display:flex; gap:0.8rem; justify-content:center; flex-wrap:wrap;">
+    <button onclick="window.print()" class="btn btn-outline">
+      🖨 Print Receipt
+    </button>
+    <a href="/" class="btn btn-primary">
+      Back to Schedule →
+    </a>
+  </div>
+
+</div>
+
+{% else %}
+<!-- No booking data — redirect -->
+<div style="text-align:center; padding:4rem 0;">
+  <div style="font-size:3rem; margin-bottom:1rem;">🤔</div>
+  <h2 style="font-family:var(--font-head); letter-spacing:2px; margin-bottom:0.5rem;">NO BOOKING FOUND</h2>
+  <p style="color:var(--text-muted); margin-bottom:1.5rem;">It looks like you navigated here directly.</p>
+  <a href="/book" class="btn btn-primary">Book a Slot</a>
+</div>
+{% endif %}
+
+<style>
+  @keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  @media print {
+    nav, .btn { display: none !important; }
+    body { background: white; color: black; }
+    .card { border: 1px solid #ccc; }
+  }
+</style>
+{% endblock %}

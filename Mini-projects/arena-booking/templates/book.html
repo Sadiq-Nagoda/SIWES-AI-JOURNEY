@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% block title %}Book a Slot — ArenaBook{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <p class="eyebrow">Reserve Your Pitch</p>
+  <h1>BOOK A SLOT</h1>
+  <p>Fill in your details below. Booking is confirmed instantly — no payment required at MVP stage.</p>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 340px; gap:2rem; align-items:start;">
+
+  <!-- ── Booking form ── -->
+  <div class="card">
+    {% if errors %}
+    <div class="alert alert-error">
+      <strong>Please fix the following:</strong>
+      <ul>
+        {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" action="/book" id="bookingForm" novalidate>
+
+      <!-- Team Name -->
+      <div class="form-group">
+        <label for="team_name">Team Name *</label>
+        <input type="text" id="team_name" name="team_name"
+               class="form-control"
+               placeholder="e.g. Lagos Warriors FC"
+               value="{{ form_data.team_name if form_data else '' }}"
+               maxlength="60"
+               required />
+        <p class="form-hint">Your team or organisation name</p>
+      </div>
+
+      <!-- Phone -->
+      <div class="form-group">
+        <label for="phone">Phone Number *</label>
+        <input type="tel" id="phone" name="phone"
+               class="form-control"
+               placeholder="e.g. 08012345678"
+               value="{{ form_data.phone if form_data else '' }}"
+               required />
+        <p class="form-hint">Nigerian number: 0801 234 5678 or +234 801 234 5678</p>
+      </div>
+
+      <!-- Date -->
+      <div class="form-group">
+        <label for="date">Date *</label>
+        <input type="date" id="date" name="date"
+               class="form-control"
+               min="{{ today }}"
+               value="{{ (form_data.date if form_data else selected_date) }}"
+               required />
+      </div>
+
+      <!-- Time Slot -->
+      <div class="form-group">
+        <label for="time_slot">Time Slot *</label>
+        <select id="time_slot" name="time_slot" class="form-control" required>
+          <option value="">— Select a time slot —</option>
+          {% for slot in available_slots %}
+          <option value="{{ slot }}"
+            {% if (form_data and form_data.time_slot == slot) or preselect_slot == slot %}
+              selected
+            {% endif %}>
+            {{ slot }}
+          </option>
+          {% endfor %}
+        </select>
+        <p class="form-hint">Only available slots are shown</p>
+      </div>
+
+      <!-- Pitch Type -->
+      <div class="form-group">
+        <label>Pitch Type *</label>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:0.2rem;">
+          {% for pitch in ['5-aside', '7-aside'] %}
+          <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;
+                         background:var(--bg-alt); border:1px solid var(--border);
+                         padding:0.65rem 1.1rem; border-radius:var(--radius);
+                         flex:1; min-width:120px; font-size:0.9rem; font-weight:600;
+                         transition:border-color 0.15s, background 0.15s;">
+            <input type="radio" name="pitch_type" value="{{ pitch }}"
+                   style="accent-color:var(--green); width:16px; height:16px;"
+                   {% if (form_data and form_data.pitch_type == pitch) or (not form_data and pitch == '5-aside') %}
+                     checked
+                   {% endif %} />
+            {{ pitch }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <hr class="divider" style="margin:1.5rem 0;" />
+
+      <button type="submit" class="btn btn-primary btn-lg" style="width:100%; justify-content:center;">
+        Confirm Booking →
+      </button>
+
+      <p style="text-align:center; margin-top:0.9rem; font-size:0.8rem; color:var(--text-sub);">
+        By booking, you agree to arrive 5 minutes before your slot.
+      </p>
+    </form>
+  </div>
+
+  <!-- ── Side info panel ── -->
+  <div style="display:flex; flex-direction:column; gap:1rem;">
+
+    <div class="card" style="border-color:rgba(0,230,118,0.25);">
+      <div style="font-family:var(--font-head); font-size:1rem; letter-spacing:1.5px; color:var(--green); margin-bottom:0.9rem;">
+        ARENA INFO
+      </div>
+      <div style="display:flex; flex-direction:column; gap:0.6rem; font-size:0.85rem;">
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <span style="color:var(--green);">📍</span>
+          <span style="color:var(--text-muted);">Lagos, Lekki Phase 1</span>
+        </div>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <span style="color:var(--green);">🕕</span>
+          <span style="color:var(--text-muted);">6:00 AM – 10:00 PM</span>
+        </div>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <span style="color:var(--green);">📞</span>
+          <span style="color:var(--text-muted);">08099998888</span>
+        </div>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <span style="color:var(--green);">💰</span>
+          <span style="color:var(--text-muted);">₦15,000/hr (5-aside)</span>
+        </div>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <span style="color:var(--green);">💰</span>
+          <span style="color:var(--text-muted);">₦25,000/hr (7-aside)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-family:var(--font-head); font-size:1rem; letter-spacing:1.5px; color:var(--amber); margin-bottom:0.9rem;">
+        BOOKING RULES
+      </div>
+      <ul style="font-size:0.83rem; color:var(--text-muted); padding-left:1.1rem; display:flex; flex-direction:column; gap:0.45rem;">
+        <li>Arrive <strong style="color:var(--text);">5 mins early</strong> to set up</li>
+        <li>Cancel at least <strong style="color:var(--text);">2 hours</strong> before</li>
+        <li>Max players: 10 (5-aside) / 14 (7-aside)</li>
+        <li>Bring your own balls — or rent at ₦500</li>
+        <li>No cleats on artificial turf</li>
+      </ul>
+    </div>
+
+    <a href="/" class="btn btn-outline" style="text-align:center; justify-content:center;">
+      ← View All Slots
+    </a>
+  </div>
+
+</div>
+
+<!-- Responsive: stack on mobile -->
+<style>
+  @media (max-width: 768px) {
+    div[style*="grid-template-columns:1fr 340px"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>
+
+<script>
+  // ── Live slot reload when date changes ──────────────────────────────
+  document.getElementById('date').addEventListener('change', function() {
+    const date = this.value;
+    if (!date) return;
+
+    const select = document.getElementById('time_slot');
+    const current = select.value;
+    select.innerHTML = '<option value="">Loading slots…</option>';
+    select.disabled = true;
+
+    fetch('/api/slots?date=' + date)
+      .then(r => r.json())
+      .then(slots => {
+        select.innerHTML = '<option value="">— Select a time slot —</option>';
+        slots.forEach(s => {
+          if (s.available) {
+            const opt = document.createElement('option');
+            opt.value = s.slot;
+            opt.textContent = s.slot;
+            if (s.slot === current) opt.selected = true;
+            select.appendChild(opt);
+          }
+        });
+        select.disabled = false;
+
+        if (select.options.length === 1) {
+          select.innerHTML = '<option value="">No slots available for this date</option>';
+        }
+      })
+      .catch(() => {
+        select.innerHTML = '<option value="">Error loading slots — try again</option>';
+        select.disabled = false;
+      });
+  });
+
+  // ── Client-side form validation ─────────────────────────────────────
+  document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    const teamName = document.getElementById('team_name').value.trim();
+    const phone    = document.getElementById('phone').value.trim();
+    const slot     = document.getElementById('time_slot').value;
+    const date     = document.getElementById('date').value;
+    const errors   = [];
+
+    if (!teamName)            errors.push('Team name is required.');
+    if (teamName.length > 60) errors.push('Team name too long.');
+    if (!phone)               errors.push('Phone number is required.');
+    else if (!/^(\+234|0)[789]\d{9}$/.test(phone.replace(/\s/g, '')))
+                              errors.push('Enter a valid Nigerian phone number.');
+    if (!slot)                errors.push('Please select a time slot.');
+    if (!date)                errors.push('Please select a date.');
+
+    if (errors.length) {
+      e.preventDefault();
+      let box = document.querySelector('.alert-error');
+      if (!box) {
+        box = document.createElement('div');
+        box.className = 'alert alert-error';
+        document.getElementById('bookingForm').prepend(box);
+      }
+      box.innerHTML = '<strong>Please fix the following:</strong><ul>'
+        + errors.map(err => '<li>' + err + '</li>').join('')
+        + '</ul>';
+      box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+
+  // ── Highlight pitch radio on click ─────────────────────────────────
+  document.querySelectorAll('input[name="pitch_type"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelectorAll('input[name="pitch_type"]').forEach(r => {
+        r.closest('label').style.borderColor = 'var(--border)';
+        r.closest('label').style.background = 'var(--bg-alt)';
+      });
+      if (radio.checked) {
+        radio.closest('label').style.borderColor = 'var(--green)';
+        radio.closest('label').style.background = 'rgba(0,230,118,0.06)';
+      }
+    });
+    if (radio.checked) {
+      radio.closest('label').style.borderColor = 'var(--green)';
+      radio.closest('label').style.background = 'rgba(0,230,118,0.06)';
+    }
+  });
+</script>
+{% endblock %}

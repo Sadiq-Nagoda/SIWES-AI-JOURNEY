@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Not Found — {{ arena_name }}{% endblock %}
+{% block content %}
+<div style="text-align:center; padding:5rem 1rem;">
+  <div style="font-family:var(--font-head); font-size:6rem; color:var(--text-sub); line-height:1;">404</div>
+  <h2 style="font-family:var(--font-head); font-size:1.5rem; letter-spacing:2px; margin:0.5rem 0;">
+    PAGE NOT FOUND
+  </h2>
+  <p style="color:var(--text-muted); margin-bottom:1.5rem;">
+    The page you're looking for doesn't exist or has been moved.
+  </p>
+  <a href="{{ url_for('index') }}" class="btn btn-primary">← Back to Schedule</a>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Available Slots — ArenaBook{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <p class="eyebrow">Football Arena Booking</p>
+  <h1>PITCH SCHEDULE</h1>
+  <p>Select a date to see available time slots. Green = available, book instantly.</p>
+</div>
+
+<!-- Date picker -->
+<div class="card" style="margin-bottom:1.8rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+  <div style="display:flex; align-items:center; gap:0.6rem; flex:1; min-width:200px;">
+    <svg width="18" height="18" fill="none" stroke="var(--green)" stroke-width="2" viewBox="0 0 24 24">
+      <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+    </svg>
+    <span style="font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted);">Viewing Date:</span>
+    <strong style="color:var(--text);">{{ selected_date }}</strong>
+  </div>
+  <form method="get" action="/" style="display:flex; gap:0.7rem; align-items:center;">
+    <input type="date" name="date" value="{{ selected_date }}" min="{{ today }}"
+           class="form-control" style="width:auto;"
+           onchange="this.form.submit()" />
+  </form>
+</div>
+
+<!-- Legend -->
+<div style="display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+  <span class="badge badge-available">● Available</span>
+  <span class="badge badge-booked">● Booked</span>
+  <span style="font-size:0.78rem; color:var(--text-muted); align-self:center;">
+    {{ slots | selectattr('booked', 'equalto', false) | list | length }} of {{ slots|length }} slots open
+  </span>
+</div>
+
+<!-- Slots grid -->
+<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:0.9rem; margin-bottom:2.5rem;">
+  {% for slot in slots %}
+  <div class="card slot-card {% if slot.booked %}slot-booked{% else %}slot-available{% endif %}"
+       style="
+         display:flex; flex-direction:column; gap:0.8rem;
+         {% if slot.booked %}opacity:0.55;{% endif %}
+       ">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-family:var(--font-head); font-size:1.15rem; letter-spacing:1px;">
+        {{ slot.time }}
+      </span>
+      {% if slot.booked %}
+        <span class="badge badge-booked">Booked</span>
+      {% else %}
+        <span class="badge badge-available">Open</span>
+      {% endif %}
+    </div>
+
+    {% if not slot.booked %}
+    <a href="/book?date={{ selected_date }}&slot={{ slot.time | urlencode }}"
+       class="btn btn-primary btn-sm" style="width:100%; justify-content:center;">
+      Book This Slot →
+    </a>
+    {% else %}
+    <div class="btn btn-sm"
+         style="background:var(--bg-alt); color:var(--text-sub); cursor:not-allowed;
+                width:100%; text-align:center; border:1px solid var(--border);">
+      Unavailable
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<!-- CTA -->
+<div class="card" style="background:linear-gradient(135deg,var(--bg-alt),var(--bg-card)); border-color:var(--border-hi); text-align:center; padding:2rem;">
+  <div style="font-family:var(--font-head); font-size:1.5rem; letter-spacing:2px; margin-bottom:0.4rem;">
+    WANT TO BOOK A SLOT?
+  </div>
+  <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.2rem;">
+    Click any open slot above, or go straight to the booking form.
+  </p>
+  <a href="/book?date={{ selected_date }}" class="btn btn-primary btn-lg">
+    Book Now →
+  </a>
+</div>
+
+<style>
+  .slot-available:hover {
+    border-color: var(--green) !important;
+    box-shadow: 0 0 16px var(--green-glow);
+  }
+</style>
+{% endblock %}

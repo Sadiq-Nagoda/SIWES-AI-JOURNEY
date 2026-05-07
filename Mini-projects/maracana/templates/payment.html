@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Payment — {{ arena_name }}{% endblock %}
+
+{% block content %}
+<div class="page-narrow" style="margin:0 auto;">
+
+  <div class="page-header text-center">
+    <p class="eyebrow">Secure Payment</p>
+    <h1>COMPLETE YOUR BOOKING</h1>
+    <p>Review your booking details below and pay to confirm your slot.</p>
+  </div>
+
+  <!-- Booking summary -->
+  <div class="card" style="margin-bottom:1.5rem; border-color:rgba(0,230,118,0.2);">
+    <div class="flex-between mb-2">
+      <div class="font-head text-green" style="font-size:1rem; letter-spacing:1.5px;">
+        BOOKING SUMMARY
+      </div>
+      <span class="badge badge-PENDING">Awaiting Payment</span>
+    </div>
+
+    <div class="receipt-row">
+      <span class="receipt-label">Booking Ref</span>
+      <span class="font-mono text-amber">{{ booking.booking_ref }}</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Team Name</span>
+      <span class="receipt-value">{{ booking.team_name }}</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Phone</span>
+      <span class="receipt-value">{{ booking.phone }}</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Date</span>
+      <span class="receipt-value text-amber">{{ booking.date }}</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Time Slot</span>
+      <span class="font-head receipt-value text-amber" style="font-size:1.1rem; letter-spacing:0.5px;">
+        {{ booking.time_slot }}
+      </span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Pitch Type</span>
+      <span class="receipt-value">{{ booking.pitch_type }}</span>
+    </div>
+
+    <div class="payment-summary" style="margin-top:1.2rem; margin-bottom:0; text-align:center;">
+      <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.3rem;">AMOUNT TO PAY</div>
+      <div class="amount-display">
+        <span class="currency">₦</span>{{ "{:,}".format(booking.amount) }}
+      </div>
+    </div>
+  </div>
+
+  {% if payment_simulate %}
+  <!-- ── SIMULATE MODE ────────────────────────────────────── -->
+  <div class="alert alert-warning" style="margin-bottom:1.2rem;">
+    <strong>🧪 Simulation Mode Active</strong><br />
+    No real payment is processed. Click the button below to simulate a successful payment.
+    Set the PAYSTACK_SECRET_KEY environment variable to enable real payments.
+  </div>
+
+  <form method="post" action="{{ url_for('initiate_payment', booking_ref=booking.booking_ref) }}">
+    <button type="submit" class="btn btn-primary btn-lg btn-full">
+      ✅ Simulate Payment (₦{{ "{:,}".format(booking.amount) }}) →
+    </button>
+  </form>
+
+  {% else %}
+  <!-- ── LIVE PAYSTACK MODE ───────────────────────────────── -->
+  <div style="margin-bottom:1.2rem;">
+    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.8rem;">
+      <span style="font-size:0.78rem; color:var(--text-muted);">Powered by</span>
+      <strong style="color:var(--text); font-size:0.85rem;">Paystack</strong>
+      <span style="font-size:0.75rem; color:var(--text-sub);">🔒 SSL Secured</span>
+    </div>
+  </div>
+
+  <!-- Paystack inline embed -->
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+
+  <button id="payBtn" class="btn btn-primary btn-lg btn-full"
+          onclick="payWithPaystack()">
+    Pay ₦{{ "{:,}".format(booking.amount) }} with Paystack →
+  </button>
+
+  <form id="payForm" method="post"
+        action="{{ url_for('initiate_payment', booking_ref=booking.booking_ref) }}">
+  </form>
+
+  <script>
+    function payWithPaystack() {
+      var handler = PaystackPop.setup({
+        key:       '{{ paystack_public_key }}',
+        email:     '{{ booking.email or booking.phone + "@maracana.ng" }}',
+        amount:  '  {{ booking.amount * 100 }}',
+        ref:       '{{ booking.booking_ref }}',
+        currency:  'NGN',
+        metadata:  { booking_ref: '{{ booking.booking_ref }}', team: '{{ booking.team_name }}' },
+        onClose: function () {
+          alert('Payment window closed. Your slot is still reserved for 10 minutes.');
+        },
+        callback: function (response) {
+          // Verify on our backend
+          window.location = '/pay/callback?reference=' + response.reference;
+        }
+      });
+      handler.openIframe();
+     }
+  </script>
+  {% endif %}
+
+  <div style="margin-top:1rem; text-align:center; font-size:0.76rem; color:var(--text-sub);">
+    <p>Your slot is temporarily held while you complete payment.</p>
+    <p>Booking ref: <strong class="text-amber font-mono">{{ booking.booking_ref }}</strong></p>
+  </div>
+
+  <div style="margin-top:1.5rem; text-align:center;">
+    <a href="{{ url_for('index') }}" class="btn btn-ghost btn-sm">Cancel — Return to Schedule</a>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const paymentSimulate = {{ payment_simulate | tojson }};
+
+if (!paymentSimulate) {
+  (function poll() {
+    setTimeout(function () {
+      fetch('/api/booking/{{ booking.booking_ref }}')
+        .then(r => r.json())
+        .then(data => {
+          if (data.booking_status === 'CONFIRMED') {
+            window.location = '{{ url_for("confirmation", booking_ref=booking.booking_ref) }}';
+          } else {
+            poll();
+          }
+        })
+        .catch(poll);
+    }, 5000);
+  })();
+}
+</script>

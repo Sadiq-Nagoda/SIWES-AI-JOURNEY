@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Pitch Schedule — {{ arena_name }}{% endblock %}
+
+{% block content %}
+
+<!-- ── Arena Hero ──────────────────────────────────────────── -->
+<div class="arena-hero">
+  <div class="arena-hero-icon">⚽</div>
+  <div>
+    <p class="eyebrow">Welcome to</p>
+    <h2>{{ arena_name | upper }}</h2>
+    <p class="sub">📍 {{ arena_location }} &nbsp;·&nbsp; 📞 {{ arena_phone }} &nbsp;·&nbsp; Book your slot below</p>
+  </div>
+</div>
+
+<!-- ── Date picker + summary ───────────────────────────────── -->
+<div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem;">
+  <form method="get" action="{{ url_for('index') }}" style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap;">
+    <label class="form-label" style="margin:0;">📅 Date:</label>
+    <input type="date" name="date" value="{{ selected_date }}" min="{{ today }}"
+           class="form-control" style="width:auto;"
+           onchange="this.form.submit()" />
+  </form>
+  <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin-left:auto;">
+    <span class="badge badge-available">● Available ({{ counts.available }})</span>
+    <span class="badge badge-booked">● Booked ({{ counts.booked }})</span>
+    {% if counts.blocked > 0 %}
+    <span class="badge badge-blocked">● Blocked ({{ counts.blocked }})</span>
+    {% endif %}
+    {% if counts.pending > 0 %}
+    <span class="badge badge-pending">● Pending ({{ counts.pending }})</span>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── Slot grid ───────────────────────────────────────────── -->
+<div class="slot-grid">
+  {% for slot in TIME_SLOTS %}
+  {% set s = slot_map[slot] %}
+  <div class="slot-card {{ s.status }}"
+       {% if s.status == 'available' %}
+       onclick="window.location='/book?date={{ selected_date }}&slot={{ slot | urlencode }}'"
+       title="Click to book {{ slot }}"
+       {% endif %}>
+
+    <div class="flex-between">
+      <span class="slot-time">{{ slot }}</span>
+      <span class="badge badge-{{ s.status }}">
+        {% if s.status == 'available' %}Open
+        {% elif s.status == 'booked' %}Booked
+        {% elif s.status == 'blocked' %}Blocked
+        {% elif s.status == 'pending' %}Pending
+        {% endif %}
+      </span>
+    </div>
+
+    {% if s.status == 'booked' or s.status == 'pending' %}
+    <div style="font-size:0.78rem; color:var(--text-sub); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+      {{ s.team_name }}
+    </div>
+    {% endif %}
+
+    {% if s.status == 'available' %}
+    <a href="{{ url_for('book') }}?date={{ selected_date }}&slot={{ slot | urlencode }}"
+       class="btn btn-primary btn-sm btn-full">
+      Book This Slot →
+    </a>
+    {% elif s.status == 'blocked' %}
+    <div style="font-size:0.75rem; color:var(--text-sub);">{{ s.team_name }}</div>
+    {% else %}
+    <div class="btn btn-sm btn-full" style="background:var(--bg-alt); color:var(--text-sub);
+         cursor:not-allowed; border:1px solid var(--border);">
+      Unavailable
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<!-- ── CTA ─────────────────────────────────────────────────── -->
+{% if counts.available > 0 %}
+<div class="card" style="text-align:center; padding:2rem;
+     background:linear-gradient(135deg,var(--bg-alt),var(--bg-card));
+     border-color:var(--border-hi);">
+  <div class="font-head" style="font-size:1.5rem; letter-spacing:2px; margin-bottom:0.4rem;">
+    {{ counts.available }} SLOT{% if counts.available != 1 %}S{% endif %} OPEN TODAY
+  </div>
+  <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:1.2rem;">
+    Reserve your pitch now — slots fill up fast on weekends.
+  </p>
+  <a href="{{ url_for('book') }}?date={{ selected_date }}" class="btn btn-primary btn-lg">
+    Book a Slot →
+  </a>
+</div>
+{% else %}
+<div class="card" style="text-align:center; padding:2rem; border-color:rgba(255,68,68,0.2);">
+  <div style="font-size:2rem; margin-bottom:0.5rem;">😔</div>
+  <div class="font-head" style="font-size:1.3rem; letter-spacing:2px; margin-bottom:0.4rem;">
+    ALL SLOTS TAKEN
+  </div>
+  <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:1.2rem;">
+    Choose another date to find available slots.
+  </p>
+</div>
+{% endif %}
+
+{% endblock %}

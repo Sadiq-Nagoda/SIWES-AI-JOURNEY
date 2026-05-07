@@ -1,0 +1,146 @@
+{% extends "admin_base.html" %}
+{% block title %}Schedule — Admin{% endblock %}
+
+{% block content %}
+
+<div class="flex-between mb-2" style="flex-wrap:wrap; gap:0.8rem;">
+  <div>
+    <p class="eyebrow">{{ arena_name }}</p>
+    <h1 style="font-family:var(--font-head); font-size:2rem; letter-spacing:2px;">
+      7-DAY SCHEDULE
+    </h1>
+    <p style="color:var(--text-muted); font-size:0.83rem;">
+      Manage availability. Block slots or entire days for maintenance or events.
+    </p>
+  </div>
+</div>
+
+<!-- Block form -->
+<div class="card" style="margin-bottom:1.5rem; border-color:rgba(255,68,68,0.15);">
+  <div class="font-head text-red" style="font-size:0.9rem; letter-spacing:1.5px; margin-bottom:0.8rem;">
+    🔒 BLOCK A SLOT OR DAY
+  </div>
+  <form method="post" action="{{ url_for('admin_block_slot') }}"
+        style="display:flex; gap:0.8rem; flex-wrap:wrap; align-items:flex-end;">
+    <div class="form-group" style="margin:0; flex:1; min-width:150px;">
+      <label class="form-label">Date *</label>
+      <input type="date" name="date" class="form-control" required />
+    </div>
+    <div class="form-group" style="margin:0; flex:1; min-width:180px;">
+      <label class="form-label">Time Slot (leave blank = full day)</label>
+      <select name="time_slot" class="form-control">
+        <option value="">— Entire Day —</option>
+        {% for slot in TIME_SLOTS %}
+        <option value="{{ slot }}">{{ slot }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="margin:0; flex:1; min-width:150px;">
+      <label class="form-label">Reason</label>
+      <input type="text" name="reason" class="form-control"
+             placeholder="Maintenance, event…" value="Maintenance" />
+    </div>
+    <button type="submit" class="btn btn-red">Block</button>
+  </form>
+</div>
+
+<!-- 7-day schedule table -->
+<div class="card" style="padding:0; overflow:hidden; margin-bottom:1.5rem;">
+  <div style="padding:1rem 1.2rem; border-bottom:1px solid var(--border);">
+    <span class="font-head text-green" style="font-size:0.95rem; letter-spacing:1.5px;">
+      WEEKLY AVAILABILITY
+    </span>
+  </div>
+  <div class="table-wrap">
+    <table class="schedule-table">
+      <thead>
+        <tr>
+          <th>Time Slot</th>
+          {% for d in days %}
+          <th>
+            {{ d }}
+            <br />
+            <span style="font-size:0.65rem; color:var(--text-sub); font-weight:400;">
+              {{ ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][loop.index0 % 7] if loop.index0 < 7 else '' }}
+            </span>
+          </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for slot in TIME_SLOTS %}
+        <tr>
+          <td>{{ slot }}</td>
+          {% for d in days %}
+          {% set s = week[d][slot] %}
+          <td class="sched-{{ s.status }}" title="{{ s.team_name or s.status }}">
+            {% if s.status == 'available' %}
+            <span class="badge badge-available" style="font-size:0.6rem;">Open</span>
+            {% elif s.status == 'booked' %}
+            <a href="{{ url_for('admin_booking_detail', booking_ref=s.booking_ref) }}"
+               style="text-decoration:none;">
+              <span class="badge badge-booked" style="font-size:0.6rem;" title="{{ s.team_name }}">
+                Booked
+              </span>
+            </a>
+            {% elif s.status == 'blocked' %}
+            <span class="badge badge-blocked" style="font-size:0.6rem;">Blocked</span>
+            {% elif s.status == 'pending' %}
+            <span class="badge badge-pending" style="font-size:0.6rem;">Pending</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Active blocks list -->
+<div class="card" style="padding:0; overflow:hidden;">
+  <div style="padding:1rem 1.2rem; border-bottom:1px solid var(--border);" class="flex-between">
+    <span class="font-head" style="font-size:0.9rem; letter-spacing:1.5px;">ACTIVE BLOCKS</span>
+    <span class="badge badge-red">{{ blocks | length }} block{% if blocks|length != 1 %}s{% endif %}</span>
+  </div>
+  {% if blocks %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time Slot</th>
+          <th>Reason</th>
+          <th>Created At</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in blocks %}
+        <tr>
+          <td class="text-amber">{{ b.date }}</td>
+          <td class="font-head" style="font-size:0.9rem;">
+            {{ b.time_slot or '— FULL DAY —' }}
+          </td>
+          <td style="color:var(--text-muted);">{{ b.reason }}</td>
+          <td style="font-size:0.78rem; color:var(--text-sub);">{{ b.created_at }}</td>
+          <td>
+            <form method="post"
+                  action="{{ url_for('admin_unblock_slot', block_id=b.id) }}"
+                  onsubmit="return confirm('Remove this block?')">
+              <button type="submit" class="btn btn-ghost btn-sm text-green">Unblock</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center; padding:2rem; color:var(--text-sub); font-size:0.85rem;">
+    No active blocks. All dates are open.
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

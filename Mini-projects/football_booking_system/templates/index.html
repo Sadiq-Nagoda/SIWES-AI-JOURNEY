@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="{{ arena_name }} — Online Pitch Booking" />
+  <title>{% block title %}{{ arena_name }}{% endblock %}</title>
+
+  <!-- Single font request: Bebas Neue + DM Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- ── Navigation ─────────────────────────────────────────── -->
+<nav class="nav">
+  <a href="{{ url_for('index') }}" class="nav-brand">
+    ⚽
+    <span class="arena-name">{{ arena_name }}</span>
+  </a>
+  <div class="nav-links">
+    <a href="{{ url_for('index') }}"
+       class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+      Schedule
+    </a>
+    <a href="{{ url_for('book') }}"
+       class="nav-link {% if request.endpoint == 'book' %}active{% endif %}">
+      Book
+    </a>
+  </div>
+  <div class="nav-spacer"></div>
+  <a href="{{ url_for('admin_login') }}" class="nav-admin">Admin ›</a>
+</nav>
+
+<!-- ── Flash messages ─────────────────────────────────────── -->
+{% with messages = get_flashed_messages(with_categories=True) %}
+  {% if messages %}
+  <div style="position:relative;z-index:1;max-width:1140px;margin:0 auto;padding:0.9rem 1.25rem 0;">
+    <div class="flash-container">
+      {% for category, message in messages %}
+        {% if not (message is mapping) %}
+        <div class="alert alert-{{ 'error' if category == 'error' else 'success' if category == 'success' else 'warning' if category == 'warning' else 'info' }}">
+          {{ message }}
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+{% endwith %}
+
+<!-- ── Page content ───────────────────────────────────────── -->
+<div class="page {% block page_class %}{% endblock %}">
+  {% block content %}{% endblock %}
+</div>
+
+<!-- ── Footer ─────────────────────────────────────────────── -->
+<footer style="
+  position:relative; z-index:1;
+  border-top: 1px solid var(--border);
+  padding: 1.2rem 1.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-sub);
+">
+  {{ arena_name }} &mdash; {{ arena_location }} &mdash; {{ arena_phone }}
+  <span style="margin-left:1rem; color:var(--text-sub);">
+    {% if payment_simulate %}💳 Payment: Simulate Mode{% endif %}
+  </span>
+</footer>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

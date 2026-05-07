@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% block title %}Book a Slot — {{ arena_name }}{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <p class="eyebrow">{{ arena_name }}</p>
+  <h1>BOOK A SLOT</h1>
+  <p>Fill in your details. You'll be directed to payment to confirm your booking.</p>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 320px; gap:1.8rem; align-items:start;">
+
+  <!-- ── Booking Form ──────────────────────────────────────── -->
+  <div class="card">
+
+    {% if errors %}
+    <div class="alert alert-error">
+      <strong>Please fix the following:</strong>
+      <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('book') }}" id="bookForm" novalidate>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="team_name">Team Name *</label>
+          <input type="text" id="team_name" name="team_name"
+                 class="form-control"
+                 placeholder="e.g. Kano Pillars FC"
+                 value="{{ form_data.team_name if form_data else '' }}"
+                 maxlength="80" required />
+          <p class="form-hint">Your team or group name</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="phone">Phone Number *</label>
+          <input type="tel" id="phone" name="phone"
+                 class="form-control"
+                 placeholder="08012345678"
+                 value="{{ form_data.phone if form_data else '' }}"
+                 required />
+          <p class="form-hint">Nigerian number (080x / 070x / 090x)</p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email Address</label>
+        <input type="email" id="email" name="email"
+               class="form-control"
+               placeholder="team@example.com (optional — for receipt)"
+               value="{{ form_data.email if form_data else '' }}" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="date">Date *</label>
+          <input type="date" id="date" name="date"
+                 class="form-control"
+                 min="{{ today }}"
+                 value="{{ form_data.date if form_data else selected_date }}"
+                 required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="time_slot">Time Slot *</label>
+          <select id="time_slot" name="time_slot" class="form-control" required>
+            <option value="">— Select slot —</option>
+            {% for slot in available_slots %}
+            <option value="{{ slot }}"
+              {% if (form_data and form_data.time_slot == slot) or preselect_slot == slot %}
+                selected
+              {% endif %}>
+              {{ slot }}
+            </option>
+            {% endfor %}
+          </select>
+          <p class="form-hint" id="slot-hint">
+            {{ available_slots | length }} slot{% if available_slots|length != 1 %}s{% endif %} available
+          </p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Pitch Type *</label>
+        <div class="radio-group" id="pitchGroup">
+          {% for pt, price in PRICE.items() %}
+          <label class="radio-card {% if (form_data and form_data.pitch_type == pt) or (not form_data and pt == '5-aside') %}selected{% endif %}"
+                 data-pitch="{{ pt }}">
+            <input type="radio" name="pitch_type" value="{{ pt }}"
+                   {% if (form_data and form_data.pitch_type == pt) or (not form_data and pt == '5-aside') %}
+                     checked
+                   {% endif %} />
+            {{ pt }} &nbsp;
+            <span class="text-green font-head" style="font-size:1rem; letter-spacing:0.5px;">
+              ₦{{ "{:,}".format(price) }}
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Price preview -->
+      <div id="pricePreview" style="
+        background: var(--green-glow);
+        border: 1px solid rgba(0,230,118,0.25);
+        border-radius: var(--radius);
+        padding: 0.8rem 1rem;
+        margin-bottom: 1.2rem;
+        display: flex; justify-content: space-between; align-items: center;
+      ">
+        <span style="font-size:0.82rem; color:var(--text-muted);">Total Amount</span>
+        <span class="font-head text-green" style="font-size:1.6rem; letter-spacing:1px;" id="priceDisplay">
+          ₦15,000
+        </span>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg btn-full" id="submitBtn">
+        Continue to Payment →
+      </button>
+      <p class="text-center mt-1" style="font-size:0.76rem; color:var(--text-sub);">
+        Payment required to confirm booking. By booking you agree to arena rules.
+      </p>
+    </form>
+  </div>
+
+  <!-- ── Info sidebar ──────────────────────────────────────── -->
+  <div style="display:flex; flex-direction:column; gap:1rem;">
+
+    <div class="card" style="border-color:rgba(0,230,118,0.2);">
+      <div class="font-head text-green" style="font-size:0.95rem; letter-spacing:1.5px; margin-bottom:0.85rem;">
+        ARENA DETAILS
+      </div>
+      <div style="display:flex; flex-direction:column; gap:0.55rem; font-size:0.83rem;">
+        <div>📍 <span style="color:var(--text-muted);">{{ arena_location }}</span></div>
+        <div>🕕 <span style="color:var(--text-muted);">6:00 AM – 10:00 PM daily</span></div>
+        <div>📞 <span style="color:var(--text-muted);">{{ arena_phone }}</span></div>
+        <div>📧 <span style="color:var(--text-muted);">{{ arena_email }}</span></div>
+        <hr class="divider" style="margin:0.5rem 0;" />
+        <div>⚽ <span style="color:var(--text-muted);">5-a-side: </span>
+             <strong class="text-green">₦{{ "{:,}".format(PRICE['5-aside']) }}/hr</strong></div>
+        <div>⚽ <span style="color:var(--text-muted);">7-a-side: </span>
+             <strong class="text-green">₦{{ "{:,}".format(PRICE['7-aside']) }}/hr</strong></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="font-head text-amber" style="font-size:0.95rem; letter-spacing:1.5px; margin-bottom:0.85rem;">
+        BOOKING RULES
+      </div>
+      <ul style="font-size:0.8rem; color:var(--text-muted); padding-left:1rem;
+                 display:flex; flex-direction:column; gap:0.4rem; list-style:disc;">
+        <li>Arrive <strong class="text-green">5 mins early</strong> to set up</li>
+        <li>Cancel at least <strong class="text-green">2 hours</strong> before slot</li>
+        <li>Max 10 players (5-a-side) / 14 (7-a-side)</li>
+        <li>No studs on artificial turf</li>
+        <li>Payment is non-refundable after slot starts</li>
+      </ul>
+    </div>
+
+    <a href="{{ url_for('index') }}" class="btn btn-outline btn-full">← View Full Schedule</a>
+  </div>
+
+</div>
+
+<!-- Responsive stack on mobile -->
+<style>
+  @media (max-width: 768px) {
+    div[style*="grid-template-columns:1fr 320px"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PRICES = {{ PRICE | tojson }};
+
+// ── Pitch type radio highlight ─────────────────────────────
+document.querySelectorAll('.radio-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    updatePrice();
+  });
+});
+
+function updatePrice() {
+  const selected = document.querySelector('input[name="pitch_type"]:checked');
+  if (selected && PRICES[selected.value]) {
+    const n = PRICES[selected.value];
+    document.getElementById('priceDisplay').textContent =
+      '₦' + n.toLocaleString('en-NG');
+  }
+}
+updatePrice();
+
+// ── Dynamic slot reload on date change ─────────────────────
+document.getElementById('date').addEventListener('change', function () {
+  const d = this.value;
+  if (!d) return;
+  const sel = document.getElementById('time_slot');
+  const hint = document.getElementById('slot-hint');
+  sel.innerHTML = '<option>Loading…</option>';
+  sel.disabled = true;
+
+  fetch('/api/slots?date=' + d)
+    .then(r => r.json())
+    .then(slots => {
+      const avail = slots.filter(s => s.available);
+      sel.innerHTML = '<option value="">— Select slot —</option>';
+      avail.forEach(s => {
+        const o = document.createElement('option');
+        o.value = s.slot; o.textContent = s.slot;
+        sel.appendChild(o);
+      });
+      sel.disabled = false;
+      hint.textContent = avail.length + ' slot' + (avail.length !== 1 ? 's' : '') + ' available';
+      if (avail.length === 0)
+        sel.innerHTML = '<option value="">No slots available</option>';
+    })
+    .catch(() => {
+      sel.innerHTML = '<option value="">Error — please refresh</option>';
+      sel.disabled = false;
+    });
+});
+
+// ── Client-side validation ─────────────────────────────────
+document.getElementById('bookForm').addEventListener('submit', function (e) {
+  const errs = [];
+  const team = document.getElementById('team_name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const slot = document.getElementById('time_slot').value;
+  const dateVal = document.getElementById('date').value;
+
+  if (!team)   errs.push('Team name is required.');
+  if (!phone)  errs.push('Phone number is required.');
+  else if (!/^(\+234|0)[789]\d{9}$/.test(phone.replace(/\s|-/g, '')))
+               errs.push('Enter a valid Nigerian phone number.');
+  if (!slot)   errs.push('Please select a time slot.');
+  if (!dateVal)errs.push('Please select a date.');
+
+  if (errs.length) {
+    e.preventDefault();
+    let box = document.querySelector('.alert-error');
+    if (!box) {
+      box = document.createElement('div');
+      box.className = 'alert alert-error';
+      document.getElementById('bookForm').prepend(box);
+    }
+    box.innerHTML = '<strong>Please fix:</strong><ul>' +
+      errs.map(x => '<li>' + x + '</li>').join('') + '</ul>';
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submitBtn').textContent = 'Processing…';
+});
+</script>
+{% endblock %}

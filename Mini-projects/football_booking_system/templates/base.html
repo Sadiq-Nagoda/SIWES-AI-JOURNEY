@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Admin — {{ arena_name }}{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- ── Admin Nav ───────────────────────────────────────────── -->
+<nav class="nav">
+  <a href="{{ url_for('admin_dashboard') }}" class="nav-brand">
+    ⚽ <span class="arena-name">{{ arena_name }}</span>
+  </a>
+  <div class="nav-links">
+    <span style="font-size:0.72rem; color:var(--amber); font-weight:700;
+                 text-transform:uppercase; letter-spacing:0.1em; padding:0 0.5rem;">
+      ADMIN PANEL
+    </span>
+  </div>
+  <div class="nav-spacer"></div>
+  <a href="{{ url_for('index') }}" class="nav-admin" style="margin-right:0.5rem;">← Public</a>
+  <a href="{{ url_for('admin_logout') }}" class="nav-admin">Logout</a>
+</nav>
+
+{% with messages = get_flashed_messages(with_categories=True) %}
+  {% if messages %}
+  <div style="position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:0.9rem 1.25rem 0;">
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ 'error' if category == 'error' else 'success' if category == 'success' else 'warning' if category == 'warning' else 'info' }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+{% endwith %}
+
+<div class="page page-wide">
+  <div class="admin-layout">
+
+    <!-- ── Sidebar ────────────────────────────────────────── -->
+    <aside class="admin-sidebar no-print">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Operations</div>
+        <a href="{{ url_for('admin_dashboard') }}"
+           class="sidebar-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+          <span class="sidebar-icon">📊</span> Dashboard
+        </a>
+        <a href="{{ url_for('admin_schedule') }}"
+           class="sidebar-link {% if request.endpoint == 'admin_schedule' %}active{% endif %}">
+          <span class="sidebar-icon">📅</span> Schedule
+        </a>
+        <a href="{{ url_for('admin_bookings') }}"
+           class="sidebar-link {% if request.endpoint == 'admin_bookings' %}active{% endif %}">
+          <span class="sidebar-icon">📋</span> All Bookings
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Actions</div>
+        <a href="{{ url_for('admin_create_booking') }}"
+           class="sidebar-link {% if request.endpoint == 'admin_create_booking' %}active{% endif %}">
+          <span class="sidebar-icon">➕</span> New Booking
+        </a>
+        <a href="{{ url_for('admin_block_slot') }}" class="sidebar-link"
+           onclick="return false;" style="opacity:0.5; cursor:default;">
+          <span class="sidebar-icon">🔒</span> Block Slot ↑
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">System</div>
+        <a href="{{ url_for('index') }}" class="sidebar-link">
+          <span class="sidebar-icon">👁</span> View Public Site
+        </a>
+        <a href="{{ url_for('admin_logout') }}" class="sidebar-link"
+           style="color:var(--red);">
+          <span class="sidebar-icon">🔓</span> Logout
+        </a>
+      </div>
+
+      <!-- Arena info pill -->
+      <div style="margin:1rem 0.8rem 0; padding:0.8rem;
+                  background:var(--bg-alt); border:1px solid var(--border);
+                  border-radius:var(--radius); font-size:0.74rem; color:var(--text-sub);">
+        <div style="color:var(--text-muted); font-weight:600; margin-bottom:0.3rem;">
+          {{ arena_name }}
+        </div>
+        {{ arena_phone }}
+      </div>
+    </aside>
+
+    <!-- ── Main content ───────────────────────────────────── -->
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+
+  </div>
+</div>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

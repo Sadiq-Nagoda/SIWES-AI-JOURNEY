@@ -1,0 +1,128 @@
+{% extends "admin_base.html" %}
+{% block title %}All Bookings — Admin{% endblock %}
+
+{% block content %}
+
+<div class="flex-between mb-2" style="flex-wrap:wrap; gap:0.8rem;">
+  <div>
+    <p class="eyebrow">Managing: {{ arena_name }}</p>
+    <h1 style="font-family:var(--font-head); font-size:2rem; letter-spacing:2px;">ALL BOOKINGS</h1>
+    <p style="color:var(--text-muted); font-size:0.83rem;">
+      {{ total_count }} record{% if total_count != 1 %}s{% endif %} found
+    </p>
+  </div>
+  <a href="{{ url_for('admin_create_booking') }}" class="btn btn-primary">+ New Booking</a>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom:1.2rem;">
+  <form method="get" action="{{ url_for('admin_bookings') }}" class="search-bar">
+    <input type="text" name="q" class="form-control" placeholder="Search team, phone, ref…"
+           value="{{ filter_search }}" />
+    <input type="date" name="date" class="form-control" style="width:auto;"
+           value="{{ filter_date }}" />
+    <select name="status" class="form-control" style="width:auto;">
+      <option value="">All Statuses</option>
+      {% for st in statuses %}
+      <option value="{{ st }}" {% if filter_status == st %}selected{% endif %}>{{ st }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <a href="{{ url_for('admin_bookings') }}" class="btn btn-outline">Reset</a>
+  </form>
+</div>
+
+<!-- Table -->
+<div class="card" style="padding:0; overflow:hidden;">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Ref</th>
+          <th>Team Name</th>
+          <th>Phone</th>
+          <th>Date</th>
+          <th>Time Slot</th>
+          <th>Pitch</th>
+          <th>Booking</th>
+          <th>Payment</th>
+          <th>Amount</th>
+          <th>Created By</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr>
+          <td>
+            <a href="{{ url_for('admin_booking_detail', booking_ref=b.booking_ref) }}"
+               class="font-mono text-amber" style="font-size:0.78rem; text-decoration:none;">
+               {{ b.booking_ref }}
+            </a>
+          </td>
+          <td style="font-weight:600; max-width:150px; overflow:hidden;
+                     text-overflow:ellipsis; white-space:nowrap;" title="{{ b.team_name }}">
+            {{ b.team_name }}
+          </td>
+          <td style="color:var(--text-muted); white-space:nowrap;">{{ b.phone }}</td>
+          <td style="color:var(--text-muted); white-space:nowrap;">{{ b.date }}</td>
+          <td style="font-family:var(--font-head); font-size:0.9rem; white-space:nowrap;">
+            {{ b.time_slot }}
+          </td>
+          <td>
+            <span class="badge {% if b.pitch_type == '7-aside' %}badge-amber{% else %}badge-green{% endif %}">
+              {{ b.pitch_type }}
+            </span>
+          </td>
+          <td><span class="badge badge-{{ b.booking_status }}">{{ b.booking_status }}</span></td>
+          <td><span class="badge badge-{{ b.payment_status }}">{{ b.payment_status }}</span></td>
+          <td class="text-green fw-bold">₦{{ "{:,}".format(b.amount) }}</td>
+          <td style="font-size:0.76rem; color:var(--text-sub);">{{ b.created_by }}</td>
+          <td>
+            <div style="display:flex; gap:0.3rem; flex-wrap:wrap;">
+              <a href="{{ url_for('admin_booking_detail', booking_ref=b.booking_ref) }}"
+                 class="btn btn-ghost btn-sm">View</a>
+              {% if b.booking_status == 'CONFIRMED' %}
+              <form method="post"
+                    action="{{ url_for('admin_mark_no_show', booking_ref=b.booking_ref) }}"
+                    onsubmit="return confirm('Mark as No-Show?')">
+                <button type="submit" class="btn btn-ghost btn-sm" title="No-Show">👻</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="11" style="text-align:center; padding:3rem; color:var(--text-sub);">
+            No bookings found for the selected filters.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="pagination">
+  <a href="?page={{ page - 1 }}&date={{ filter_date }}&status={{ filter_status }}&q={{ filter_search }}"
+     class="page-btn {% if page <= 1 %}disabled{% endif %}">‹</a>
+  {% for p in range(1, total_pages + 1) %}
+    {% if p == page or (p >= page - 2 and p <= page + 2) or p == 1 or p == total_pages %}
+    <a href="?page={{ p }}&date={{ filter_date }}&status={{ filter_status }}&q={{ filter_search }}"
+       class="page-btn {% if p == page %}active{% endif %}">{{ p }}</a>
+    {% elif p == page - 3 or p == page + 3 %}
+    <span class="page-btn" style="pointer-events:none;">…</span>
+    {% endif %}
+  {% endfor %}
+  <a href="?page={{ page + 1 }}&date={{ filter_date }}&status={{ filter_status }}&q={{ filter_search }}"
+     class="page-btn {% if page >= total_pages %}disabled{% endif %}">›</a>
+  <span style="font-size:0.78rem; color:var(--text-sub); margin-left:0.5rem;">
+    Page {{ page }} of {{ total_pages }} ({{ total_count }} records)
+  </span>
+</div>
+{% endif %}
+
+{% endblock %}

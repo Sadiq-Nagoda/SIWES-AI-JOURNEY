@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Python Mastery System — Sadiq</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #080b12; }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: #0a1020; }
+  ::-webkit-scrollbar-thumb { background: #1e2d45; border-radius: 2px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const stages = [
+  {
+    id: 1, level: "STAGE 01", title: "Foundation", subtitle: "The Language Itself",
+    duration: "4–6 weeks", color: "#00ff87", icon: "⬡",
+    outcome: "Write clean, readable Python programs that solve real problems from scratch — no hand-holding.",
+    corePrinciple: "Python rewards clarity. Learn to think in expressions, not instructions.",
+    topics: [
+      { name: "Python Mental Model", items: ["How the interpreter executes code line-by-line", "Objects, references, and identity (id())", "Mutable vs immutable types — not just what, but WHY it matters", "The REPL as your thinking tool"] },
+      { name: "Data Types & Structures", items: ["int, float, str, bool — their methods, not just their existence", "list vs tuple: mutability as a design decision", "dict — the backbone of Python (key hashing, O(1) access)", "set for uniqueness and intersection logic"] },
+      { name: "Control Flow & Functions", items: ["if/elif/else — write conditions that read like English", "for/while — knowing which to reach for", "Functions as first-class objects (not just def blocks)", "Default arguments, *args, **kwargs"] },
+      { name: "File I/O & Exceptions", items: ["Reading/writing files with context managers (with open(...))", "try/except/finally — exception handling as flow control", "Custom exceptions for meaningful error messages", "Pathlib for cross-platform file paths"] }
+    ],
+    benchmarks: [
+      "Build a CLI task manager (add, complete, delete, save to JSON file)",
+      "Solve 20 LeetCode Easy problems using only stdlib",
+      "Explain mutable default argument bug without looking it up",
+      "Read a 500-line Python codebase and map what every function does"
+    ],
+    pitfalls: ["Skipping the REPL — it's how you build intuition", "Memorizing syntax without understanding WHY the language was designed that way"]
+  },
+  {
+    id: 2, level: "STAGE 02", title: "Pythonic Mastery", subtitle: "Write Code Experts Respect",
+    duration: "4–6 weeks", color: "#00cfff", icon: "◈",
+    outcome: "Write idiomatic Python that senior engineers would be proud to review — concise, expressive, and efficient.",
+    corePrinciple: "Idiomatic Python isn't about tricks. It's about communicating intent through the language.",
+    topics: [
+      { name: "Comprehensions & Generators", items: ["List, dict, and set comprehensions — when to use them vs loops", "Generator expressions for lazy evaluation", "yield and generator functions — memory-efficient iteration", "The difference between iter() and next() under the hood"] },
+      { name: "Functional Tools", items: ["map(), filter(), zip(), enumerate() — use them, don't fear them", "functools: partial, reduce, lru_cache (memoization)", "Lambdas: small anonymous functions, not magic", "sorted() with key= — Schwartzian transform pattern"] },
+      { name: "OOP Done Right", items: ["__init__, __repr__, __str__, __eq__, __hash__ — dunder methods are the protocol", "Inheritance vs composition — composition wins more often", "Properties (@property) for controlled attribute access", "Dataclasses for clean data containers without boilerplate"] },
+      { name: "Modules & Packages", items: ["__name__ == '__main__' and why it matters", "Relative vs absolute imports", "Building your own importable package", "Virtual environments — venv, pip, requirements.txt"] }
+    ],
+    benchmarks: [
+      "Rewrite Stage 1 task manager using OOP + dataclasses",
+      "Implement a lazy infinite sequence using generators",
+      "Write a decorator that logs execution time of any function",
+      "Build a small package installable via pip install -e ."
+    ],
+    pitfalls: ["Over-using comprehensions until they become unreadable (one-liners are not always better)", "Inheritance hierarchies that go 3+ levels deep — a design smell"]
+  },
+  {
+    id: 3, level: "STAGE 03", title: "Advanced Internals", subtitle: "How Python Really Works",
+    duration: "5–7 weeks", color: "#a78bfa", icon: "⬢",
+    outcome: "Understand Python well enough to predict behavior, debug at the bytecode level, and write framework-grade code.",
+    corePrinciple: "Mastery requires knowing the machine beneath the language.",
+    topics: [
+      { name: "The Python Data Model", items: ["Protocol-based design — Python is an implicit interface language", "__getitem__, __len__, __contains__ — making custom objects feel native", "__call__ for callable objects", "__enter__/__exit__ for custom context managers"] },
+      { name: "Decorators & Metaclasses", items: ["How decorators work at the function-wrapping level", "Class decorators vs function decorators", "functools.wraps to preserve metadata", "Metaclasses: classes that create classes — __new__ vs __init__"] },
+      { name: "Memory & Performance", items: ["CPython's reference counting and garbage collector", "__slots__ to reduce per-object memory overhead", "timeit and cProfile for benchmarking", "Memory profiling with tracemalloc"] },
+      { name: "Concurrency Foundations", items: ["The GIL: what it is, what it prevents, and when it matters", "threading for I/O-bound tasks", "multiprocessing for CPU-bound tasks", "asyncio: event loop, coroutines, async/await"] }
+    ],
+    benchmarks: [
+      "Build a fully-functional @retry(times=3, delay=1) decorator from scratch",
+      "Create a custom context manager class for database transactions",
+      "Profile a slow function and reduce its runtime by 50%+ without changing its behavior",
+      "Write an async web scraper that fetches 50 URLs concurrently"
+    ],
+    pitfalls: ["Confusing threading with multiprocessing and picking the wrong one", "Using asyncio when standard synchronous code would be simpler and faster"]
+  },
+  {
+    id: 4, level: "STAGE 04", title: "Systems & Engineering", subtitle: "Production-Grade Python",
+    duration: "6–8 weeks", color: "#f59e0b", icon: "◉",
+    outcome: "Build, test, and ship Python systems that work reliably in production — not just on your machine.",
+    corePrinciple: "Code is read 10x more than it's written. Design for the reader.",
+    topics: [
+      { name: "Testing Discipline", items: ["pytest: fixtures, parametrize, conftest.py", "Unit vs integration vs end-to-end — what to test at each level", "Mocking with unittest.mock — isolate what you're testing", "Test-Driven Development: writing tests first as a design tool"] },
+      { name: "Type System & Tooling", items: ["Type hints: not enforced, but invaluable for tooling", "mypy for static type checking", "Protocols for structural typing (duck typing formalized)", "ruff for linting, black for formatting — non-negotiable in teams"] },
+      { name: "Database & Persistence", items: ["SQLAlchemy ORM: models, sessions, relationships", "Raw SQL with sqlite3 for when ORM is overkill", "Database migrations with Alembic", "Redis for caching and ephemeral state"] },
+      { name: "APIs & Web Backend", items: ["Flask: routing, blueprints, application factory pattern", "FastAPI: type-driven APIs with auto-documentation", "REST principles — resources, HTTP verbs, status codes", "Authentication: JWT, session-based, OAuth2 basics"] }
+    ],
+    benchmarks: [
+      "Build a REST API with 90%+ test coverage using pytest + httpx",
+      "Add type hints to an existing project and make mypy pass with zero errors",
+      "Implement a database migration workflow with Alembic on a live schema change",
+      "Deploy a Flask/FastAPI app to a VPS using gunicorn + nginx"
+    ],
+    pitfalls: ["Testing implementation details instead of behavior (brittle tests)", "Over-engineering a simple CRUD app with unnecessary abstractions"]
+  },
+  {
+    id: 5, level: "STAGE 05", title: "Expert Domains", subtitle: "Pick Your Weapon",
+    duration: "8–12 weeks", color: "#ff6b6b", icon: "✦",
+    outcome: "Develop deep expertise in one Python domain that makes you genuinely valuable and hard to replace.",
+    corePrinciple: "A T-shaped engineer: broad foundation, but one area of undeniable depth.",
+    topics: [
+      { name: "Track A: Data Engineering", items: ["pandas for tabular data — groupby, merge, pivot mastery", "NumPy for vectorized computation — no loops for math", "Data pipeline design with Luigi or Prefect", "SQL + Python: when to push computation into the database"] },
+      { name: "Track B: Backend Systems", items: ["Django: ORM, admin, middleware, signals", "Celery for async task queues (background jobs)", "WebSockets for real-time features", "Docker: containerize your Python app from scratch"] },
+      { name: "Track C: Automation & Tooling", items: ["Web scraping with httpx + BeautifulSoup / Playwright", "Building CLI tools with Click or Typer", "Scripting CI/CD pipelines in Python", "Writing Python C extensions when you need raw speed"] },
+      { name: "Track D: AI/ML Engineering", items: ["PyTorch fundamentals: tensors, autograd, training loop", "Building and serving ML models as APIs", "LLM API integration (Anthropic, OpenAI) in production", "Vector databases for semantic search (FAISS, pgvector)"] }
+    ],
+    benchmarks: [
+      "Ship one non-trivial open-source Python project (real users, real feedback)",
+      "Write a technical blog post or documentation that teaches others your domain",
+      "Contribute a pull request to a Python library used by 1000+ people",
+      "Give a code review of another developer's production Python and write detailed feedback"
+    ],
+    pitfalls: ["Sampling all tracks without going deep in any (the tourist trap)", "Building portfolio projects nobody uses — ship real software"]
+  }
+];
+
+const principles = [
+  { icon: "⬡", title: "Build First, Read Second", desc: "Every concept you read becomes 10x more durable when you immediately write code that uses it. Reading without building is forgetting in slow motion." },
+  { icon: "◈", title: "Errors Are Information", desc: "Don't Google the error immediately. Spend 5 minutes reading it. 80% of Python errors are self-explanatory if you actually read them." },
+  { icon: "⬢", title: "Depth Before Breadth", desc: "Own one domain completely before learning the next. A codebase you understand end-to-end is worth more than five tutorials you've 'completed'." },
+  { icon: "◉", title: "Teach It or You Don't Know It", desc: "Explain everything you learn — to a rubber duck, a friend, a blog. The inability to teach something reveals what you don't actually understand." },
+  { icon: "✦", title: "Ship Ugly, Then Refine", desc: "Done is better than perfect at first. Get it working. Then get it right. Perfection before function is a procrastination strategy." },
+];
+
+function App() {
+  const [activeStage, setActiveStage] = useState(0);
+  const [activeTab, setActiveTab] = useState("topics");
+  const stage = stages[activeStage];
+
+  return (
+    <div style={{ background:"#080b12", minHeight:"100vh", fontFamily:"'Courier New', monospace", color:"#e2e8f0", overflowX:"hidden" }}>
+
+      {/* Header */}
+      <div style={{ borderBottom:"1px solid #1a2035", padding:"32px 24px 24px", background:"linear-gradient(180deg,#0a0f1e 0%,#080b12 100%)" }}>
+        <div style={{ maxWidth:900, margin:"0 auto" }}>
+          <div style={{ color:"#00ff87", fontSize:11, letterSpacing:4, marginBottom:8 }}>// PYTHON MASTERY SYSTEM</div>
+          <h1 style={{ fontSize:"clamp(24px,5vw,42px)", fontWeight:900, letterSpacing:-1, margin:"0 0 8px", fontFamily:"Georgia,serif", background:"linear-gradient(135deg,#fff 0%,#94a3b8 100%)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Zero to Expert.</h1>
+          <p style={{ color:"#64748b", fontSize:14, margin:0, letterSpacing:1 }}>5 STAGES · 27–35 WEEKS · NO SHORTCUTS</p>
+        </div>
+      </div>
+
+      <div style={{ maxWidth:900, margin:"0 auto", padding:"0 24px 60px" }}>
+
+        {/* Stage Nav */}
+        <div style={{ display:"flex", gap:8, padding:"20px 0", overflowX:"auto" }}>
+          {stages.map((s,i) => (
+            <button key={i} onClick={() => { setActiveStage(i); setActiveTab("topics"); }}
+              style={{ background: activeStage===i ? s.color : "transparent", border:`1px solid ${activeStage===i ? s.color : "#1e2d45"}`, borderRadius:4, padding:"8px 16px", color: activeStage===i ? "#080b12" : "#64748b", fontSize:11, fontWeight:700, letterSpacing:2, cursor:"pointer", whiteSpace:"nowrap", fontFamily:"'Courier New',monospace", transition:"all 0.2s" }}>
+              {s.level}
+            </button>
+          ))}
+        </div>
+
+        {/* Stage Card */}
+        <div style={{ border:`1px solid ${stage.color}22`, borderRadius:8, background:"linear-gradient(135deg,#0d1120 0%,#080b12 100%)", overflow:"hidden", boxShadow:`0 0 40px ${stage.color}08` }}>
+
+          {/* Stage Header */}
+          <div style={{ padding:"28px 28px 24px", borderBottom:`1px solid ${stage.color}22`, background:`linear-gradient(135deg,${stage.color}08 0%,transparent 60%)` }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:12 }}>
+              <div>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
+                  <span style={{ color:stage.color, fontSize:18 }}>{stage.icon}</span>
+                  <span style={{ color:stage.color, fontSize:10, letterSpacing:4, fontWeight:700 }}>{stage.level}</span>
+                </div>
+                <h2 style={{ margin:"0 0 2px", fontSize:26, fontWeight:900, fontFamily:"Georgia,serif", letterSpacing:-0.5 }}>{stage.title}</h2>
+                <p style={{ margin:0, color:"#64748b", fontSize:13, letterSpacing:1 }}>{stage.subtitle}</p>
+              </div>
+              <div style={{ background:`${stage.color}15`, border:`1px solid ${stage.color}30`, borderRadius:4, padding:"6px 14px", fontSize:11, color:stage.color, letterSpacing:2, fontWeight:700, whiteSpace:"nowrap" }}>
+                ⏱ {stage.duration}
+              </div>
+            </div>
+            <div style={{ marginTop:18, display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div style={{ background:"#0a1020", border:"1px solid #1e2d45", borderRadius:6, padding:"14px 16px" }}>
+                <div style={{ fontSize:9, color:"#475569", letterSpacing:3, marginBottom:6, fontWeight:700 }}>OUTCOME</div>
+                <p style={{ margin:0, fontSize:12, color:"#cbd5e1", lineHeight:1.6 }}>{stage.outcome}</p>
+              </div>
+              <div style={{ background:"#0a1020", border:"1px solid #1e2d45", borderRadius:6, padding:"14px 16px" }}>
+                <div style={{ fontSize:9, color:"#475569", letterSpacing:3, marginBottom:6, fontWeight:700 }}>CORE PRINCIPLE</div>
+                <p style={{ margin:0, fontSize:12, color:"#cbd5e1", lineHeight:1.6 }}>{stage.corePrinciple}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div style={{ display:"flex", borderBottom:"1px solid #1a2035" }}>
+            {["topics","benchmarks","pitfalls"].map(tab => (
+              <button key={tab} onClick={() => setActiveTab(tab)}
+                style={{ background:"transparent", border:"none", borderBottom: activeTab===tab ? `2px solid ${stage.color}` : "2px solid transparent", padding:"14px 20px", color: activeTab===tab ? stage.color : "#475569", fontSize:10, fontWeight:700, letterSpacing:3, cursor:"pointer", fontFamily:"'Courier New',monospace", textTransform:"uppercase", transition:"all 0.2s" }}>
+                {tab==="topics" ? "Topics" : tab==="benchmarks" ? "Benchmarks" : "Pitfalls"}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          <div style={{ padding:28 }}>
+            {activeTab==="topics" && (
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:16 }}>
+                {stage.topics.map((topic,i) => (
+                  <div key={i} style={{ background:"#0a1020", border:"1px solid #1e2d45", borderRadius:6, padding:18 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
+                      <span style={{ color:stage.color, fontSize:10 }}>▶</span>
+                      <span style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:"#e2e8f0" }}>{topic.name}</span>
+                    </div>
+                    <ul style={{ margin:0, padding:0, listStyle:"none" }}>
+                      {topic.items.map((item,j) => (
+                        <li key={j} style={{ display:"flex", gap:8, marginBottom:8, alignItems:"flex-start" }}>
+                          <span style={{ color:stage.color, fontSize:10, marginTop:2, flexShrink:0 }}>—</span>
+                          <span style={{ fontSize:12, color:"#94a3b8", lineHeight:1.5 }}>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+            {activeTab==="benchmarks" && (
+              <div>
+                <p style={{ fontSize:11, color:"#475569", letterSpacing:2, marginBottom:20 }}>// YOU DON'T MOVE TO THE NEXT STAGE UNTIL YOU CAN DO ALL OF THESE</p>
+                <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                  {stage.benchmarks.map((b,i) => (
+                    <div key={i} style={{ display:"flex", gap:16, alignItems:"flex-start", background:"#0a1020", border:`1px solid ${stage.color}20`, borderRadius:6, padding:"16px 20px" }}>
+                      <span style={{ background:stage.color, color:"#080b12", width:22, height:22, borderRadius:4, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:900, flexShrink:0 }}>{i+1}</span>
+                      <span style={{ fontSize:13, color:"#cbd5e1", lineHeight:1.6 }}>{b}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {activeTab==="pitfalls" && (
+              <div>
+                <p style={{ fontSize:11, color:"#475569", letterSpacing:2, marginBottom:20 }}>// TRAPS THAT KILL PROGRESS AT THIS STAGE</p>
+                <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                  {stage.pitfalls.map((p,i) => (
+                    <div key={i} style={{ display:"flex", gap:16, alignItems:"flex-start", background:"#0a1020", border:"1px solid #ff6b6b20", borderRadius:6, padding:"16px 20px" }}>
+                      <span style={{ color:"#ff6b6b", fontSize:16, flexShrink:0, lineHeight:1.4 }}>⚠</span>
+                      <span style={{ fontSize:13, color:"#cbd5e1", lineHeight:1.6 }}>{p}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Five Laws */}
+        <div style={{ marginTop:32 }}>
+          <div style={{ fontSize:10, color:"#475569", letterSpacing:4, marginBottom:16, fontWeight:700 }}>// THE FIVE LAWS OF LEARNING PYTHON</div>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {principles.map((p,i) => (
+              <div key={i} style={{ display:"flex", gap:16, alignItems:"flex-start", background:"#0a1020", border:"1px solid #1e2d45", borderRadius:6, padding:"14px 18px" }}>
+                <span style={{ color:"#00ff87", fontSize:14, flexShrink:0, marginTop:1 }}>{p.icon}</span>
+                <div>
+                  <span style={{ fontSize:12, fontWeight:700, color:"#e2e8f0", display:"block", marginBottom:3 }}>{p.title}</span>
+                  <span style={{ fontSize:12, color:"#64748b", lineHeight:1.6 }}>{p.desc}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Timeline */}
+        <div style={{ marginTop:32, background:"#0a1020", border:"1px solid #1e2d45", borderRadius:8, padding:24 }}>
+          <div style={{ fontSize:10, color:"#475569", letterSpacing:4, marginBottom:20, fontWeight:700 }}>// TOTAL TIMELINE</div>
+          <div style={{ display:"flex", overflowX:"auto" }}>
+            {stages.map((s,i) => (
+              <div key={i} onClick={() => { setActiveStage(i); setActiveTab("topics"); }}
+                style={{ flex:1, minWidth:100, borderLeft: i===0 ? "none" : "1px solid #1e2d45", padding:"0 16px", cursor:"pointer" }}>
+                <div style={{ fontSize:9, color:s.color, letterSpacing:2, marginBottom:4, fontWeight:700 }}>{s.level}</div>
+                <div style={{ fontSize:11, fontWeight:700, color: i===activeStage ? "#fff" : "#475569", marginBottom:4 }}>{s.title}</div>
+                <div style={{ fontSize:10, color:"#334155" }}>{s.duration}</div>
+                <div style={{ marginTop:8, height:2, background: i===activeStage ? s.color : "#1e2d45", borderRadius:2 }} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ marginTop:24, textAlign:"center", color:"#1e2d45", fontSize:11, letterSpacing:2 }}>
+          // BUILT FOR SADIQ — NO SHORTCUTS, NO CEILING
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

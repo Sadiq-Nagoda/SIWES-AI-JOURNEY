@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Booking Confirmed — {{ arena_name }}{% endblock %}
+
+{% block content %}
+<div class="page-narrow" style="margin:0 auto; text-align:center;">
+
+  <div class="confirm-icon">✅</div>
+
+  <p class="eyebrow" style="text-align:center;">
+    {% if booking.booking_status == 'PAY_VENUE' %}Pay at Venue{% else %}Booking Confirmed{% endif %}
+  </p>
+  <h1 style="font-family:var(--font-head); font-size:2.6rem; letter-spacing:2px; margin-bottom:0.5rem;">
+    YOU'RE BOOKED!
+  </h1>
+  <p style="color:var(--text-muted); margin-bottom:2rem; font-size:0.9rem;">
+    See you on the pitch, <strong style="color:var(--text);">{{ booking.team_name }}</strong>!
+    Show this receipt at the gate.
+  </p>
+
+  <!-- Receipt -->
+  <div class="card" style="text-align:left; border-color:rgba(0,230,118,0.22); margin-bottom:1.5rem;">
+
+    <!-- Receipt header -->
+    <div class="flex-between" style="padding-bottom:1rem; border-bottom:1px solid var(--border); margin-bottom:1rem;">
+      <div>
+        <div class="font-head text-green" style="font-size:1.2rem; letter-spacing:2px;">
+          OFFICIAL RECEIPT
+        </div>
+        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.15rem;">
+          {{ arena_name }}
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:0.7rem; color:var(--text-sub);">Booking ID</div>
+        <div class="font-mono text-amber" style="font-size:1.1rem;">{{ booking.booking_ref }}</div>
+      </div>
+    </div>
+
+    <!-- Receipt rows -->
+    <div class="receipt-row">
+      <span class="receipt-label">Arena</span>
+      <span class="receipt-value">{{ arena_name }}</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Team Name</span>
+      <span class="receipt-value">{{ booking.team_name }}</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Phone</span>
+      <span class="receipt-value">{{ booking.phone }}</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Date</span>
+      <span class="receipt-value text-amber">{{ booking.date }}</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Time Slot</span>
+      <span class="font-head text-amber" style="font-size:1.15rem; letter-spacing:0.5px;">
+        {{ booking.time_slot }}
+      </span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Pitch Type</span>
+      <span class="receipt-value">{{ booking.pitch_type }}</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Amount Paid</span>
+      <span class="receipt-value text-green font-head" style="font-size:1.1rem;">
+        ₦{{ "{:,}".format(booking.amount) }}
+      </span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Booking Status</span>
+      <span class="badge badge-{{ booking.booking_status }}">{{ booking.booking_status }}</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Payment</span>
+      <span class="badge badge-{{ booking.payment_status }}">{{ booking.payment_status }}</span>
+    </div>
+    {% if booking.payment_ref %}
+    <div class="receipt-row">
+      <span class="receipt-label">Payment Ref</span>
+      <span class="font-mono" style="font-size:0.78rem; color:var(--text-muted);">
+        {{ booking.payment_ref }}
+      </span>
+    </div>
+    {% endif %}
+    <div class="receipt-row">
+      <span class="receipt-label">Booked At</span>
+      <span style="font-size:0.8rem; color:var(--text-muted);">{{ booking.created_at }}</span>
+    </div>
+
+    <!-- Arena contact -->
+    <div style="margin-top:1.2rem; padding:1rem;
+                background:var(--bg-alt); border-radius:var(--radius);
+                font-size:0.78rem; color:var(--text-muted); text-align:center;">
+      📍 {{ arena_location }} &nbsp;|&nbsp; 📞 {{ arena_phone }}<br />
+      <strong style="color:var(--text-sub); font-size:0.73rem;">
+        Arrive 5 minutes before your slot. No studs on turf.
+      </strong>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div style="display:flex; gap:0.8rem; justify-content:center; flex-wrap:wrap;">
+    <button onclick="window.print()" class="btn btn-outline">🖨 Print Receipt</button>
+    <a href="{{ url_for('index') }}" class="btn btn-primary">Back to Schedule →</a>
+  </div>
+
+</div>
+
+<style>
+  @media print {
+    .nav, footer, .btn, .no-print { display:none !important; }
+    body { background:#fff; color:#000; }
+    .card { border:1px solid #ccc; background:#fff; }
+    .text-green, .text-amber { color:#000 !important; }
+  }
+</style>
+{% endblock %}

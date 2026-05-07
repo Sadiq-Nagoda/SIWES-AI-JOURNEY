@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Arena Booking{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ═══════════════════════════════════════
+       DESIGN SYSTEM — Night-pitch aesthetic
+       Deep blacks, electric green, warm amber
+    ════════════════════════════════════════ */
+    :root {
+      --bg:         #0a0c0e;
+      --bg-card:    #111518;
+      --bg-alt:     #161b20;
+      --border:     #1e2529;
+      --border-hi:  #2a3540;
+      --green:      #00e676;
+      --green-dim:  #00b85c;
+      --green-glow: rgba(0,230,118,0.15);
+      --amber:      #ffab00;
+      --red:        #ff4444;
+      --text:       #e8edf2;
+      --text-muted: #6b7e8f;
+      --text-sub:   #3d5060;
+      --font-head:  'Bebas Neue', sans-serif;
+      --font-body:  'DM Sans', sans-serif;
+      --radius:     10px;
+      --transition: 0.18s ease;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Pitch-line texture overlay ───────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 59px,
+          rgba(0,230,118,0.025) 60px
+        );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Nav ──────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,12,14,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      height: 60px;
+    }
+
+    .nav-brand {
+      font-family: var(--font-head);
+      font-size: 1.6rem;
+      letter-spacing: 2px;
+      color: var(--green);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .nav-brand span { color: var(--text); }
+
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      transition: color var(--transition);
+    }
+
+    nav a:hover, nav a.active { color: var(--green); }
+
+    nav .spacer { flex: 1; }
+
+    .nav-badge {
+      background: var(--green);
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+
+    /* ── Layout ───────────────────────────── */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    /* ── Page header ──────────────────────── */
+    .page-header {
+      margin-bottom: 2.5rem;
+    }
+
+    .page-header .eyebrow {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--green);
+      margin-bottom: 0.4rem;
+    }
+
+    .page-header h1 {
+      font-family: var(--font-head);
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      letter-spacing: 2px;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .page-header p {
+      margin-top: 0.7rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      max-width: 540px;
+    }
+
+    /* ── Cards ────────────────────────────── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: border-color var(--transition);
+    }
+
+    .card:hover { border-color: var(--border-hi); }
+
+    /* ── Buttons ──────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1.4rem;
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: all var(--transition);
+      letter-spacing: 0.03em;
+    }
+
+    .btn-primary {
+      background: var(--green);
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      background: #00ff88;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px var(--green-glow);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border-hi);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--red);
+      border: 1px solid rgba(255,68,68,0.3);
+      font-size: 0.78rem;
+      padding: 0.4rem 0.9rem;
+    }
+
+    .btn-danger:hover { background: rgba(255,68,68,0.1); }
+
+    .btn-sm { padding: 0.45rem 1rem; font-size: 0.8rem; }
+    .btn-lg { padding: 0.9rem 2rem; font-size: 1rem; }
+
+    /* ── Status badges ───────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .badge-available { background: var(--green-glow); color: var(--green); border: 1px solid rgba(0,230,118,0.3); }
+    .badge-booked    { background: rgba(255,68,68,0.1); color: var(--red);  border: 1px solid rgba(255,68,68,0.25); }
+    .badge-confirmed { background: var(--green-glow); color: var(--green); border: 1px solid rgba(0,230,118,0.3); }
+    .badge-cancelled { background: rgba(100,100,100,0.1); color: var(--text-muted); border: 1px solid var(--border); }
+    .badge-amber     { background: rgba(255,171,0,0.12); color: var(--amber); border: 1px solid rgba(255,171,0,0.3); }
+
+    /* ── Forms ───────────────────────────── */
+    .form-group {
+      margin-bottom: 1.3rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.45rem;
+    }
+
+    .form-control {
+      width: 100%;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      padding: 0.75rem 1rem;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      -webkit-appearance: none;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px var(--green-glow);
+    }
+
+    .form-control::placeholder { color: var(--text-sub); }
+
+    select.form-control { cursor: pointer; }
+
+    .form-hint {
+      margin-top: 0.35rem;
+      font-size: 0.78rem;
+      color: var(--text-sub);
+    }
+
+    /* ── Alerts ──────────────────────────── */
+    .alert {
+      padding: 1rem 1.2rem;
+      border-radius: var(--radius);
+      margin-bottom: 1.3rem;
+      font-size: 0.9rem;
+    }
+
+    .alert-error {
+      background: rgba(255,68,68,0.08);
+      border: 1px solid rgba(255,68,68,0.3);
+      color: #ff8080;
+    }
+
+    .alert-success {
+      background: var(--green-glow);
+      border: 1px solid rgba(0,230,118,0.3);
+      color: var(--green);
+    }
+
+    .alert ul { padding-left: 1.2rem; margin-top: 0.3rem; }
+    .alert li { margin-bottom: 0.2rem; }
+
+    /* ── Divider ─────────────────────────── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+
+    /* ── Stat tiles ──────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-tile {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem 1.3rem;
+      text-align: center;
+    }
+
+    .stat-tile .num {
+      font-family: var(--font-head);
+      font-size: 2.4rem;
+      line-height: 1;
+      color: var(--green);
+    }
+
+    .stat-tile .label {
+      font-size: 0.73rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+
+    /* ── Table ───────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 0.7rem 1rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background var(--transition);
+    }
+
+    tbody tr:hover { background: var(--bg-alt); }
+
+    tbody td {
+      padding: 0.85rem 1rem;
+      vertical-align: middle;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+
+    /* ── Mobile ──────────────────────────── */
+    @media (max-width: 640px) {
+      .page { padding: 1.5rem 1rem 3rem; }
+      nav { gap: 1.2rem; }
+      .page-header h1 { font-size: 2.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-brand">⚽ <span>ARENA</span>BOOK</a>
+  <a href="/" {% if request.endpoint == 'index' %}class="active"{% endif %}>Slots</a>
+  <a href="/book" {% if request.endpoint == 'book' %}class="active"{% endif %}>Book</a>
+  <div class="spacer"></div>
+  <a href="/admin" {% if request.endpoint == 'admin' %}class="active"{% endif %}>Admin</a>
+</nav>
+
+<div class="page">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for msg in messages %}
+        {% if msg is mapping and msg.type == 'success' %}
+          <!-- handled on confirmation page -->
+        {% else %}
+          <div class="alert alert-success">{{ msg }}</div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>

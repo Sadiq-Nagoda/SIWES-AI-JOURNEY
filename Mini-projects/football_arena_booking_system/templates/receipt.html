@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Receipt - {{ arena_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Success Message -->
+    <div class="alert alert-success mb-6">
+        <i class="fas fa-check-circle text-2xl"></i>
+        <div>
+            <h2 class="font-bold text-lg">Booking Confirmed!</h2>
+            <p>Your booking has been successfully registered. Your receipt is ready below.</p>
+        </div>
+    </div>
+
+    <!-- Receipt Document -->
+    <div id="receipt-document" class="card" style="background: white; border: 1px solid #e5e7eb;">
+        <!-- Header -->
+        <div style="text-align: center; border-bottom: 3px solid #1e40af; padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+            <div style="font-size: 2rem; color: #1e40af; margin-bottom: 0.5rem;">
+                <i class="fas fa-futbol"></i>
+            </div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; color: #1e40af;">{{ arena_name }}</h1>
+            <p style="color: #6b7280; font-size: 0.875rem;">Professional Football Arena Booking System</p>
+        </div>
+
+        <!-- Receipt Title -->
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: #1f2937;">BOOKING RECEIPT</h2>
+            <p style="color: #6b7280; font-size: 0.875rem;">Receipt #{{ booking.booking_id }}</p>
+        </div>
+
+        <!-- Booking Information -->
+        <div style="margin-bottom: 1.5rem;">
+            <h3 style="font-weight: 700; font-size: 1.125rem; margin-bottom: 1rem; color: #1f2937;">Booking Information</h3>
+            
+            <table style="width: 100%; margin-bottom: 1rem;">
+                <tr>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #6b7280; width: 40%;">Booking ID:</td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #1f2937;">{{ booking.booking_id }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #6b7280;">Team Name:</td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #1f2937;">{{ booking.team_name }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #6b7280;">Phone Number:</td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #1f2937;">{{ booking.phone }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Booking Details -->
+        <div style="margin-bottom: 1.5rem;">
+            <h3 style="font-weight: 700; font-size: 1.125rem; margin-bottom: 1rem; color: #1f2937;">Booking Details</h3>
+            
+            <table style="width: 100%; margin-bottom: 1rem;">
+                <tr>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #6b7280; width: 40%;">Arena:</td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #1f2937;">{{ booking.arena_name }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #6b7280;">Date:</td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #1f2937;">{{ booking.date.strftime('%A, %B %d, %Y') }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #6b7280;">Time Slot:</td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #1f2937;">{{ booking.time_slot }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #6b7280;">Duration:</td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #1f2937;">1 Hour</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Payment Information -->
+        <div style="margin-bottom: 1.5rem;">
+            <h3 style="font-weight: 700; font-size: 1.125rem; margin-bottom: 1rem; color: #1f2937;">Payment Information</h3>
+            
+            <table style="width: 100%; margin-bottom: 1rem;">
+                <tr>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #6b7280; width: 40%;">Amount:</td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #1f2937;">{{ currency }} {{ "%.2f"|format(booking.amount) }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #6b7280;">Payment Method:</td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #1f2937;">
+                        {% if booking.payment_method == 'TRANSFER' %}
+                            Bank Transfer
+                        {% elif booking.payment_method == 'CARD' %}
+                            Card Payment (Paystack)
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #6b7280;">Payment Status:</td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #1f2937;">
+                        {% if booking.payment_status == 'PAID' %}
+                            <span style="background-color: #d1fae5; color: #065f46; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem;">✓ PAID</span>
+                        {% elif booking.payment_status == 'PENDING' %}
+                            <span style="background-color: #fef3c7; color: #92400e; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem;">⏳ PENDING</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% if booking.payment_reference %}
+                <tr>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #6b7280;">Payment Reference:</td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #1f2937; font-family: monospace;">{{ booking.payment_reference }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+
+        <!-- Timestamp -->
+        <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 0.875rem;">
+            <p>Receipt Generated: {{ booking.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+            <p style="margin-top: 0.5rem;">Thank you for booking with {{ arena_name }}</p>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-3 mt-8">
+        <button onclick="printReceipt()" class="btn btn-primary flex-1">
+            <i class="fas fa-print"></i> Print Receipt
+        </button>
+        <button onclick="downloadReceipt()" class="btn btn-success flex-1">
+            <i class="fas fa-download"></i> Download as PDF
+        </button>
+        <a href="/" class="btn btn-outline flex-1 text-center">
+            <i class="fas fa-home"></i> Back to Home
+        </a>
+    </div>
+
+    <!-- Important Notes -->
+    <div class="card bg-blue-50 border-l-4 border-blue-600 mt-8">
+        <h3 class="font-bold text-lg mb-3">
+            <i class="fas fa-info-circle"></i> Important Information
+        </h3>
+        
+        <ul class="space-y-2 text-gray-700">
+            <li class="flex gap-2">
+                <i class="fas fa-check text-blue-600"></i>
+                <span>Keep this receipt for your records</span>
+            </li>
+            <li class="flex gap-2">
+                <i class="fas fa-check text-blue-600"></i>
+                <span>Please arrive 15 minutes before your booking time</span>
+            </li>
+            <li class="flex gap-2">
+                <i class="fas fa-check text-blue-600"></i>
+                <span>Bring a valid ID for verification</span>
+            </li>
+            <li class="flex gap-2">
+                <i class="fas fa-check text-blue-600"></i>
+                <span>For cancellations or rescheduling, contact us 24 hours in advance</span>
+            </li>
+            {% if booking.payment_status == 'PENDING' %}
+            <li class="flex gap-2">
+                <i class="fas fa-clock text-yellow-600"></i>
+                <span><strong>Your payment is pending confirmation. Admin will verify and confirm your payment shortly.</strong></span>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <!-- Contact Information -->
+    <div class="card bg-gray-50 mt-8">
+        <h3 class="font-bold text-lg mb-3">
+            <i class="fas fa-phone"></i> Need Help?
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="font-bold">Phone:</p>
+                <p class="text-gray-600">+234 (0) 123 456 7890</p>
+            </div>
+            <div>
+                <p class="font-bold">Email:</p>
+                <p class="text-gray-600">bookings@maracanakano.com</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function printReceipt() {
+        const receiptContent = document.getElementById('receipt-document').innerHTML;
+        const printWindow = window.open('', '', 'height=600,width=800');
+        printWindow.document.write('<html><head><title>Receipt</title>');
+        printWindow.document.write('<style>');
+        printWindow.document.write('body { font-family: Arial, sans-serif; padding: 20px; }');
+        printWindow.document.write('table { width: 100%; border-collapse: collapse; }');
+        printWindow.document.write('td { padding: 8px; border-bottom: 1px solid #ddd; }');
+        printWindow.document.write('</style></head><body>');
+        printWindow.document.write(receiptContent);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.print();
+    }
+    
+    function downloadReceipt() {
+        // In production, this would generate a PDF using a library like jsPDF
+        // For now, we'll trigger the browser's print-to-PDF functionality
+        alert('To save as PDF, use the Print function and select "Save as PDF" as your printer.');
+        printReceipt();
+    }
+</script>
+{% endblock %}

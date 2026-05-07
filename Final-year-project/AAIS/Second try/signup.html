@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AAIS — Create Account · AUSU Academic Intelligence System</title>
+  <meta name="description" content="Create your AAIS account to access the AUSU Academic Intelligence System.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page" data-page="signup">
+
+  <!-- Background -->
+  <div class="bg-grid"></div>
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <div class="auth-wrapper">
+
+    <!-- Brand -->
+    <div class="auth-brand">
+      <div class="brand-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+          <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+        </svg>
+      </div>
+      <div class="brand-name">AUSU <span>Academic</span></div>
+      <div class="brand-name" style="font-size:1.2rem;margin-top:-6px;">Intelligence System</div>
+      <div class="brand-sub">AAIS · Version 2.0</div>
+    </div>
+
+    <!-- Card -->
+    <div class="auth-card">
+      <div class="auth-card-title">Create your account</div>
+      <div class="auth-card-sub">Register to access the AUSU Academic Intelligence System.</div>
+
+      <form id="signupForm" novalidate>
+
+        <div class="form-group">
+          <label class="form-label" for="fullName">Full Name</label>
+          <input
+            class="form-input"
+            type="text"
+            id="fullName"
+            placeholder="e.g. Sadiq Usman Nagoda"
+            autocomplete="name"
+            spellcheck="false"
+            autofocus
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="regNum">Registration Number</label>
+          <input
+            class="form-input"
+            type="text"
+            id="regNum"
+            placeholder="e.g. AUSU/2021/CS/001"
+            autocomplete="off"
+            spellcheck="false"
+          >
+        </div>
+
+        <div class="error-msg" id="signupError" role="alert" style="margin-bottom:12px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span></span>
+        </div>
+
+        <div class="success-msg" id="signupSuccess" style="margin-bottom:12px;font-size:0.875rem;"></div>
+
+        <button class="btn btn-primary" type="submit" id="signupBtn">
+          <div class="spinner"></div>
+          <span class="btn-text">Create Account</span>
+        </button>
+
+      </form>
+
+      <div class="divider"></div>
+
+      <!-- Info note -->
+      <div style="background:var(--accent-dim);border:1px solid rgba(59,127,255,0.15);border-radius:var(--radius-md);padding:12px 14px;font-size:0.8rem;color:var(--text-secondary);line-height:1.6;">
+        <strong style="color:var(--accent);">Note:</strong> Your account is stored locally in your browser.
+        Use your official AUSU registration number for accuracy.
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="auth-footer">
+      Already have an account? <a href="index.html">Sign in</a>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

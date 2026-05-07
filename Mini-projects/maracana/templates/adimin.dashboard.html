@@ -1,0 +1,148 @@
+{% extends "admin_base.html" %}
+{% block title %}Dashboard — {{ arena_name }} Admin{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="flex-between mb-2" style="flex-wrap:wrap; gap:0.8rem;">
+  <div>
+    <p class="eyebrow">Managing: {{ arena_name }}</p>
+    <h1 style="font-family:var(--font-head); font-size:2rem; letter-spacing:2px;">DASHBOARD</h1>
+    <p style="color:var(--text-muted); font-size:0.83rem;">Today: {{ today }}</p>
+  </div>
+  <a href="{{ url_for('admin_create_booking') }}" class="btn btn-primary">+ New Booking</a>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-tile">
+    <div class="n">{{ stats.total }}</div>
+    <div class="l">Total Bookings</div>
+  </div>
+  <div class="stat-tile">
+    <div class="n">{{ stats.confirmed }}</div>
+    <div class="l">Confirmed</div>
+  </div>
+  <div class="stat-tile amber">
+    <div class="n">{{ stats.pending }}</div>
+    <div class="l">Pending Pay</div>
+  </div>
+  <div class="stat-tile red">
+    <div class="n">{{ stats.cancelled }}</div>
+    <div class="l">Cancelled</div>
+  </div>
+  <div class="stat-tile blue">
+    <div class="n">{{ stats.no_show }}</div>
+    <div class="l">No-Shows</div>
+  </div>
+  <div class="stat-tile">
+    <div class="n text-green" style="font-size:1.5rem;">₦{{ "{:,}".format(stats.today_rev) }}</div>
+    <div class="l">Today Revenue</div>
+  </div>
+  <div class="stat-tile">
+    <div class="n text-green" style="font-size:1.3rem;">₦{{ "{:,}".format(stats.revenue) }}</div>
+    <div class="l">Total Revenue</div>
+  </div>
+</div>
+
+<!-- Today's Schedule -->
+<div class="card" style="margin-bottom:1.5rem; padding:0; overflow:hidden;">
+  <div class="flex-between" style="padding:1.1rem 1.3rem; border-bottom:1px solid var(--border);">
+    <span class="font-head text-green" style="font-size:1rem; letter-spacing:1.5px;">
+      TODAY'S SCHEDULE — {{ today }}
+    </span>
+    <a href="{{ url_for('admin_schedule') }}" class="btn btn-ghost btn-sm">Full Week →</a>
+  </div>
+  <div class="table-wrap">
+    <table class="schedule-table">
+      <thead>
+        <tr>
+          <th>Time Slot</th>
+          <th>Status</th>
+          <th>Team</th>
+          <th>Booking Ref</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for slot in TIME_SLOTS %}
+        {% set s = slot_map[slot] %}
+        <tr class="sched-{{ s.status }}">
+          <td>{{ slot }}</td>
+          <td><span class="badge badge-{{ s.status }}">{{ s.status | upper }}</span></td>
+          <td style="color:var(--text-muted);">
+            {{ s.team_name or '—' }}
+          </td>
+          <td class="font-mono" style="font-size:0.76rem; color:var(--amber);">
+            {% if s.booking_ref %}
+              <a href="{{ url_for('admin_booking_detail', booking_ref=s.booking_ref) }}"
+                 style="color:var(--amber); text-decoration:none;">
+                {{ s.booking_ref }}
+              </a>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if s.status == 'available' %}
+            <a href="{{ url_for('admin_create_booking') }}?date={{ today }}&slot={{ slot | urlencode }}"
+               class="btn btn-primary btn-sm">+ Book</a>
+            {% elif s.status in ('booked', 'pending') and s.booking_ref %}
+            <form method="post" style="display:inline;"
+                  action="{{ url_for('admin_mark_no_show', booking_ref=s.booking_ref) }}"
+                  onsubmit="return confirm('Mark as No-Show?')">
+              <button type="submit" class="btn btn-ghost btn-sm" title="Mark No-Show">👻</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Recent Bookings -->
+<div class="card" style="padding:0; overflow:hidden;">
+  <div class="flex-between" style="padding:1.1rem 1.3rem; border-bottom:1px solid var(--border);">
+    <span class="font-head" style="font-size:1rem; letter-spacing:1.5px;">RECENT BOOKINGS</span>
+    <a href="{{ url_for('admin_bookings') }}" class="btn btn-ghost btn-sm">View All →</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Ref</th>
+          <th>Team</th>
+          <th>Date</th>
+          <th>Slot</th>
+          <th>Booking</th>
+          <th>Payment</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in recent %}
+        <tr>
+          <td>
+            <a href="{{ url_for('admin_booking_detail', booking_ref=b.booking_ref) }}"
+               class="font-mono text-amber" style="font-size:0.8rem; text-decoration:none;">
+               {{ b.booking_ref }}
+            </a>
+          </td>
+          <td style="font-weight:600; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            {{ b.team_name }}
+          </td>
+          <td style="color:var(--text-muted); font-size:0.82rem; white-space:nowrap;">{{ b.date }}</td>
+          <td style="font-family:var(--font-head); font-size:0.9rem; white-space:nowrap;">
+            {{ b.time_slot }}
+          </td>
+          <td><span class="badge badge-{{ b.booking_status }}">{{ b.booking_status }}</span></td>
+          <td><span class="badge badge-{{ b.payment_status }}">{{ b.payment_status }}</span></td>
+          <td class="text-green fw-bold">₦{{ "{:,}".format(b.amount) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,618 @@
+{% extends "base.html" %}
+{% block title %}Admin Login — {{ arena_name }}{% endblock %}
+{% block page_class %}page-narrow{% endblock %}
+
+{% block content %}
+<div style="max-width:380px; margin:4rem auto;">
+  <div class="text-center mb-2">
+    <div style="font-size:2.5rem; margin-bottom:0.5rem;">🔐</div>
+    <p class="eyebrow">Arena Management</p>
+    <h1 style="font-family:var(--font-head); font-size:2rem; letter-spacing:2px;">ADMIN LOGIN</h1>
+    <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.4rem;">{{ arena_name }}</p>
+  </div>
+
+  <div class="card mt-2">
+    <form method="post" action="{{ url_for('admin_login') }}">
+      <div class="form-group">
+        <label class="form-label" for="password">Admin Password</label>
+        <input type="password" id="password" name="password"
+               class="form-control"
+               placeholder="Enter admin password"
+               autofocus required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg">Login →</button>
+    </form>
+  </div>
+
+  <div class="text-center mt-2">
+    <a href="{{ url_for('index') }}" class="btn btn-ghost btn-sm">← Back to Public Site</a>
+  </div>
+</div>
+{% endblock %}
+{% extends "admin_base.html" %}
+{% block title %}Dashboard — {{ arena_name }} Admin{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="flex-between mb-2" style="flex-wrap:wrap; gap:0.8rem;">
+  <div>
+    <p class="eyebrow">Managing: {{ arena_name }}</p>
+    <h1 style="font-family:var(--font-head); font-size:2rem; letter-spacing:2px;">DASHBOARD</h1>
+    <p style="color:var(--text-muted); font-size:0.83rem;">Today: {{ today }}</p>
+  </div>
+  <a href="{{ url_for('admin_create_booking') }}" class="btn btn-primary">+ New Booking</a>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-tile">
+    <div class="n">{{ stats.total }}</div>
+    <div class="l">Total Bookings</div>
+  </div>
+  <div class="stat-tile">
+    <div class="n">{{ stats.confirmed }}</div>
+    <div class="l">Confirmed</div>
+  </div>
+  <div class="stat-tile amber">
+    <div class="n">{{ stats.pending }}</div>
+    <div class="l">Pending Pay</div>
+  </div>
+  <div class="stat-tile red">
+    <div class="n">{{ stats.cancelled }}</div>
+    <div class="l">Cancelled</div>
+  </div>
+  <div class="stat-tile blue">
+    <div class="n">{{ stats.no_show }}</div>
+    <div class="l">No-Shows</div>
+  </div>
+  <div class="stat-tile">
+    <div class="n text-green" style="font-size:1.5rem;">₦{{ "{:,}".format(stats.today_rev) }}</div>
+    <div class="l">Today Revenue</div>
+  </div>
+  <div class="stat-tile">
+    <div class="n text-green" style="font-size:1.3rem;">₦{{ "{:,}".format(stats.revenue) }}</div>
+    <div class="l">Total Revenue</div>
+  </div>
+</div>
+
+<!-- Today's Schedule -->
+<div class="card" style="margin-bottom:1.5rem; padding:0; overflow:hidden;">
+  <div class="flex-between" style="padding:1.1rem 1.3rem; border-bottom:1px solid var(--border);">
+    <span class="font-head text-green" style="font-size:1rem; letter-spacing:1.5px;">
+      TODAY'S SCHEDULE — {{ today }}
+    </span>
+    <a href="{{ url_for('admin_schedule') }}" class="btn btn-ghost btn-sm">Full Week →</a>
+  </div>
+  <div class="table-wrap">
+    <table class="schedule-table">
+      <thead>
+        <tr>
+          <th>Time Slot</th>
+          <th>Status</th>
+          <th>Team</th>
+          <th>Booking Ref</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for slot in TIME_SLOTS %}
+        {% set s = slot_map[slot] %}
+        <tr class="sched-{{ s.status }}">
+          <td>{{ slot }}</td>
+          <td><span class="badge badge-{{ s.status }}">{{ s.status | upper }}</span></td>
+          <td style="color:var(--text-muted);">
+            {{ s.team_name or '—' }}
+          </td>
+          <td class="font-mono" style="font-size:0.76rem; color:var(--amber);">
+            {% if s.booking_ref %}
+              <a href="{{ url_for('admin_booking_detail', booking_ref=s.booking_ref) }}"
+                 style="color:var(--amber); text-decoration:none;">
+                {{ s.booking_ref }}
+              </a>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if s.status == 'available' %}
+            <a href="{{ url_for('admin_create_booking') }}?date={{ today }}&slot={{ slot | urlencode }}"
+               class="btn btn-primary btn-sm">+ Book</a>
+            {% elif s.status in ('booked', 'pending') and s.booking_ref %}
+            <form method="post" style="display:inline;"
+                  action="{{ url_for('admin_mark_no_show', booking_ref=s.booking_ref) }}"
+                  onsubmit="return confirm('Mark as No-Show?')">
+              <button type="submit" class="btn btn-ghost btn-sm" title="Mark No-Show">👻</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Recent Bookings -->
+<div class="card" style="padding:0; overflow:hidden;">
+  <div class="flex-between" style="padding:1.1rem 1.3rem; border-bottom:1px solid var(--border);">
+    <span class="font-head" style="font-size:1rem; letter-spacing:1.5px;">RECENT BOOKINGS</span>
+    <a href="{{ url_for('admin_bookings') }}" class="btn btn-ghost btn-sm">View All →</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Ref</th>
+          <th>Team</th>
+          <th>Date</th>
+          <th>Slot</th>
+          <th>Booking</th>
+          <th>Payment</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in recent %}
+        <tr>
+          <td>
+            <a href="{{ url_for('admin_booking_detail', booking_ref=b.booking_ref) }}"
+               class="font-mono text-amber" style="font-size:0.8rem; text-decoration:none;">
+               {{ b.booking_ref }}
+            </a>
+          </td>
+          <td style="font-weight:600; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            {{ b.team_name }}
+          </td>
+          <td style="color:var(--text-muted); font-size:0.82rem; white-space:nowrap;">{{ b.date }}</td>
+          <td style="font-family:var(--font-head); font-size:0.9rem; white-space:nowrap;">
+            {{ b.time_slot }}
+          </td>
+          <td><span class="badge badge-{{ b.booking_status }}">{{ b.booking_status }}</span></td>
+          <td><span class="badge badge-{{ b.payment_status }}">{{ b.payment_status }}</span></td>
+          <td class="text-green fw-bold">₦{{ "{:,}".format(b.amount) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+{% extends "admin_base.html" %}
+{% block title %}All Bookings — Admin{% endblock %}
+
+{% block content %}
+
+<div class="flex-between mb-2" style="flex-wrap:wrap; gap:0.8rem;">
+  <div>
+    <p class="eyebrow">Managing: {{ arena_name }}</p>
+    <h1 style="font-family:var(--font-head); font-size:2rem; letter-spacing:2px;">ALL BOOKINGS</h1>
+    <p style="color:var(--text-muted); font-size:0.83rem;">
+      {{ total_count }} record{% if total_count != 1 %}s{% endif %} found
+    </p>
+  </div>
+  <a href="{{ url_for('admin_create_booking') }}" class="btn btn-primary">+ New Booking</a>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom:1.2rem;">
+  <form method="get" action="{{ url_for('admin_bookings') }}" class="search-bar">
+    <input type="text" name="q" class="form-control" placeholder="Search team, phone, ref…"
+           value="{{ filter_search }}" />
+    <input type="date" name="date" class="form-control" style="width:auto;"
+           value="{{ filter_date }}" />
+    <select name="status" class="form-control" style="width:auto;">
+      <option value="">All Statuses</option>
+      {% for st in statuses %}
+      <option value="{{ st }}" {% if filter_status == st %}selected{% endif %}>{{ st }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <a href="{{ url_for('admin_bookings') }}" class="btn btn-outline">Reset</a>
+  </form>
+</div>
+
+<!-- Table -->
+<div class="card" style="padding:0; overflow:hidden;">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Ref</th>
+          <th>Team Name</th>
+          <th>Phone</th>
+          <th>Date</th>
+          <th>Time Slot</th>
+          <th>Pitch</th>
+          <th>Booking</th>
+          <th>Payment</th>
+          <th>Amount</th>
+          <th>Created By</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr>
+          <td>
+            <a href="{{ url_for('admin_booking_detail', booking_ref=b.booking_ref) }}"
+               class="font-mono text-amber" style="font-size:0.78rem; text-decoration:none;">
+               {{ b.booking_ref }}
+            </a>
+          </td>
+          <td style="font-weight:600; max-width:150px; overflow:hidden;
+                     text-overflow:ellipsis; white-space:nowrap;" title="{{ b.team_name }}">
+            {{ b.team_name }}
+          </td>
+          <td style="color:var(--text-muted); white-space:nowrap;">{{ b.phone }}</td>
+          <td style="color:var(--text-muted); white-space:nowrap;">{{ b.date }}</td>
+          <td style="font-family:var(--font-head); font-size:0.9rem; white-space:nowrap;">
+            {{ b.time_slot }}
+          </td>
+          <td>
+            <span class="badge {% if b.pitch_type == '7-aside' %}badge-amber{% else %}badge-green{% endif %}">
+              {{ b.pitch_type }}
+            </span>
+          </td>
+          <td><span class="badge badge-{{ b.booking_status }}">{{ b.booking_status }}</span></td>
+          <td><span class="badge badge-{{ b.payment_status }}">{{ b.payment_status }}</span></td>
+          <td class="text-green fw-bold">₦{{ "{:,}".format(b.amount) }}</td>
+          <td style="font-size:0.76rem; color:var(--text-sub);">{{ b.created_by }}</td>
+          <td>
+            <div style="display:flex; gap:0.3rem; flex-wrap:wrap;">
+              <a href="{{ url_for('admin_booking_detail', booking_ref=b.booking_ref) }}"
+                 class="btn btn-ghost btn-sm">View</a>
+              {% if b.booking_status == 'CONFIRMED' %}
+              <form method="post"
+                    action="{{ url_for('admin_mark_no_show', booking_ref=b.booking_ref) }}"
+                    onsubmit="return confirm('Mark as No-Show?')">
+                <button type="submit" class="btn btn-ghost btn-sm" title="No-Show">👻</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="11" style="text-align:center; padding:3rem; color:var(--text-sub);">
+            No bookings found for the selected filters.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="pagination">
+  <a href="?page={{ page - 1 }}&date={{ filter_date }}&status={{ filter_status }}&q={{ filter_search }}"
+     class="page-btn {% if page <= 1 %}disabled{% endif %}">‹</a>
+  {% for p in range(1, total_pages + 1) %}
+    {% if p == page or (p >= page - 2 and p <= page + 2) or p == 1 or p == total_pages %}
+    <a href="?page={{ p }}&date={{ filter_date }}&status={{ filter_status }}&q={{ filter_search }}"
+       class="page-btn {% if p == page %}active{% endif %}">{{ p }}</a>
+    {% elif p == page - 3 or p == page + 3 %}
+    <span class="page-btn" style="pointer-events:none;">…</span>
+    {% endif %}
+  {% endfor %}
+  <a href="?page={{ page + 1 }}&date={{ filter_date }}&status={{ filter_status }}&q={{ filter_search }}"
+     class="page-btn {% if page >= total_pages %}disabled{% endif %}">›</a>
+  <span style="font-size:0.78rem; color:var(--text-sub); margin-left:0.5rem;">
+    Page {{ page }} of {{ total_pages }} ({{ total_count }} records)
+  </span>
+</div>
+{% endif %}
+
+{% endblock %}
+{% extends "admin_base.html" %}
+{% block title %}New Booking — Admin{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <p class="eyebrow">Admin — {{ arena_name }}</p>
+  <h1 style="font-family:var(--font-head); font-size:2rem; letter-spacing:2px;">
+    CREATE BOOKING
+  </h1>
+  <p style="color:var(--text-muted); font-size:0.85rem;">
+    Walk-in, phone order, or manual override. You can bypass payment by selecting "Pay at Venue".
+  </p>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 280px; gap:1.5rem; align-items:start;">
+
+  <div class="card">
+    {% if errors %}
+    <div class="alert alert-error">
+      <strong>Fix the following:</strong>
+      <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('admin_create_booking') }}" id="adminBookForm">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Team Name *</label>
+          <input type="text" name="team_name" class="form-control"
+                 placeholder="Team or customer name"
+                 value="{{ form_data.team_name if form_data else '' }}"
+                 required maxlength="80" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone *</label>
+          <input type="tel" name="phone" class="form-control"
+                 placeholder="08012345678"
+                 value="{{ form_data.phone if form_data else '' }}"
+                 required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email (optional)</label>
+        <input type="email" name="email" class="form-control"
+               placeholder="team@example.com"
+               value="{{ form_data.email if form_data else '' }}" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date *</label>
+          <input type="date" name="date" id="adminDate" class="form-control"
+                 value="{{ form_data.date if form_data else selected_date }}"
+                 required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time Slot *</label>
+          <select name="time_slot" id="adminSlot" class="form-control" required>
+            <option value="">— Select slot —</option>
+            {% for slot in all_slots %}
+            <option value="{{ slot }}"
+              {% if (form_data and form_data.time_slot == slot) %}selected{% endif %}
+              {% if slot not in available_slots %}style="color:var(--red);"{% endif %}>
+              {{ slot }}{% if slot not in available_slots %} (taken){% endif %}
+            </option>
+            {% endfor %}
+          </select>
+          <p class="form-hint">Red = taken. Admin can override — use with caution.</p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Pitch Type *</label>
+        <div class="radio-group">
+          {% for pt, price in PRICE.items() %}
+          <label class="radio-card {% if (form_data and form_data.pitch_type == pt) or (not form_data and pt == '5-aside') %}selected{% endif %}"
+                 data-pitch="{{ pt }}">
+            <input type="radio" name="pitch_type" value="{{ pt }}"
+                   {% if (form_data and form_data.pitch_type == pt) or (not form_data and pt == '5-aside') %}checked{% endif %} />
+            {{ pt }} — <span class="text-green">₦{{ "{:,}".format(price) }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Admin Notes</label>
+        <textarea name="notes" class="form-control" rows="2"
+                  placeholder="Walk-in, phone order, override reason…">{{ form_data.notes if form_data else '' }}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="radio-card selected" style="flex:unset; background:var(--amber-glow); border-color:rgba(255,171,0,0.3);">
+          <input type="checkbox" name="pay_venue" value="1"
+                 {% if form_data and form_data.get('pay_venue') %}checked{% endif %} />
+          &nbsp;💵 <strong>Pay at Venue</strong>
+          <span style="font-size:0.78rem; color:var(--text-muted); margin-left:0.5rem;">
+            (marks as confirmed without online payment — collect cash on arrival)
+          </span>
+        </label>
+      </div>
+
+      <hr class="divider" />
+      <button type="submit" class="btn btn-primary btn-lg btn-full">Create Booking →</button>
+    </form>
+  </div>
+
+  <!-- Tips -->
+  <div class="card" style="border-color:rgba(255,171,0,0.2);">
+    <div class="font-head text-amber" style="font-size:0.9rem; letter-spacing:1.5px; margin-bottom:0.8rem;">
+      ADMIN TIPS
+    </div>
+    <ul style="font-size:0.8rem; color:var(--text-muted); padding-left:1rem;
+               list-style:disc; display:flex; flex-direction:column; gap:0.4rem;">
+      <li>Use <strong class="text-amber">Pay at Venue</strong> for walk-ins paying cash</li>
+      <li>If a slot shows as taken, check before overriding</li>
+      <li>Date can be in the past for retroactive entries</li>
+      <li>All actions are logged in the audit trail</li>
+    </ul>
+  </div>
+
+</div>
+
+<style>
+  @media (max-width: 768px) {
+    div[style*="grid-template-columns:1fr 280px"] { grid-template-columns: 1fr !important; }
+  }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById('adminDate').addEventListener('change', function () {
+    const d = this.value;
+    const sel = document.getElementById('adminSlot');
+    fetch('/api/slots?date=' + d)
+      .then(r => r.json())
+      .then(slots => {
+        // Re-colour options
+        Array.from(sel.options).forEach(opt => {
+          if (!opt.value) return;
+          const s = slots.find(x => x.slot === opt.value);
+          if (s) {
+            opt.style.color = s.available ? '' : 'var(--red)';
+            opt.text = opt.value + (s.available ? '' : ' (taken)');
+          }
+        });
+      });
+  });
+
+  document.querySelectorAll('.radio-card').forEach(card => {
+    if (card.querySelector('input[type="radio"]')) {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.radio-card').forEach(c => {
+          if (c.querySelector('input[type="radio"]')) c.classList.remove('selected');
+        });
+        card.classList.add('selected');
+      });
+    }
+  });
+</script>
+{% endblock %}
+{% extends "admin_base.html" %}
+{% block title %}Schedule — Admin{% endblock %}
+
+{% block content %}
+
+<div class="flex-between mb-2" style="flex-wrap:wrap; gap:0.8rem;">
+  <div>
+    <p class="eyebrow">{{ arena_name }}</p>
+    <h1 style="font-family:var(--font-head); font-size:2rem; letter-spacing:2px;">
+      7-DAY SCHEDULE
+    </h1>
+    <p style="color:var(--text-muted); font-size:0.83rem;">
+      Manage availability. Block slots or entire days for maintenance or events.
+    </p>
+  </div>
+</div>
+
+<!-- Block form -->
+<div class="card" style="margin-bottom:1.5rem; border-color:rgba(255,68,68,0.15);">
+  <div class="font-head text-red" style="font-size:0.9rem; letter-spacing:1.5px; margin-bottom:0.8rem;">
+    🔒 BLOCK A SLOT OR DAY
+  </div>
+  <form method="post" action="{{ url_for('admin_block_slot') }}"
+        style="display:flex; gap:0.8rem; flex-wrap:wrap; align-items:flex-end;">
+    <div class="form-group" style="margin:0; flex:1; min-width:150px;">
+      <label class="form-label">Date *</label>
+      <input type="date" name="date" class="form-control" required />
+    </div>
+    <div class="form-group" style="margin:0; flex:1; min-width:180px;">
+      <label class="form-label">Time Slot (leave blank = full day)</label>
+      <select name="time_slot" class="form-control">
+        <option value="">— Entire Day —</option>
+        {% for slot in TIME_SLOTS %}
+        <option value="{{ slot }}">{{ slot }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="margin:0; flex:1; min-width:150px;">
+      <label class="form-label">Reason</label>
+      <input type="text" name="reason" class="form-control"
+             placeholder="Maintenance, event…" value="Maintenance" />
+    </div>
+    <button type="submit" class="btn btn-red">Block</button>
+  </form>
+</div>
+
+<!-- 7-day schedule table -->
+<div class="card" style="padding:0; overflow:hidden; margin-bottom:1.5rem;">
+  <div style="padding:1rem 1.2rem; border-bottom:1px solid var(--border);">
+    <span class="font-head text-green" style="font-size:0.95rem; letter-spacing:1.5px;">
+      WEEKLY AVAILABILITY
+    </span>
+  </div>
+  <div class="table-wrap">
+    <table class="schedule-table">
+      <thead>
+        <tr>
+          <th>Time Slot</th>
+          {% for d in days %}
+          <th>
+            {{ d }}
+            <br />
+            <span style="font-size:0.65rem; color:var(--text-sub); font-weight:400;">
+              {{ ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][loop.index0 % 7] if loop.index0 < 7 else '' }}
+            </span>
+          </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for slot in TIME_SLOTS %}
+        <tr>
+          <td>{{ slot }}</td>
+          {% for d in days %}
+          {% set s = week[d][slot] %}
+          <td class="sched-{{ s.status }}" title="{{ s.team_name or s.status }}">
+            {% if s.status == 'available' %}
+            <span class="badge badge-available" style="font-size:0.6rem;">Open</span>
+            {% elif s.status == 'booked' %}
+            <a href="{{ url_for('admin_booking_detail', booking_ref=s.booking_ref) }}"
+               style="text-decoration:none;">
+              <span class="badge badge-booked" style="font-size:0.6rem;" title="{{ s.team_name }}">
+                Booked
+              </span>
+            </a>
+            {% elif s.status == 'blocked' %}
+            <span class="badge badge-blocked" style="font-size:0.6rem;">Blocked</span>
+            {% elif s.status == 'pending' %}
+            <span class="badge badge-pending" style="font-size:0.6rem;">Pending</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Active blocks list -->
+<div class="card" style="padding:0; overflow:hidden;">
+  <div style="padding:1rem 1.2rem; border-bottom:1px solid var(--border);" class="flex-between">
+    <span class="font-head" style="font-size:0.9rem; letter-spacing:1.5px;">ACTIVE BLOCKS</span>
+    <span class="badge badge-red">{{ blocks | length }} block{% if blocks|length != 1 %}s{% endif %}</span>
+  </div>
+  {% if blocks %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time Slot</th>
+          <th>Reason</th>
+          <th>Created At</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in blocks %}
+        <tr>
+          <td class="text-amber">{{ b.date }}</td>
+          <td class="font-head" style="font-size:0.9rem;">
+            {{ b.time_slot or '— FULL DAY —' }}
+          </td>
+          <td style="color:var(--text-muted);">{{ b.reason }}</td>
+          <td style="font-size:0.78rem; color:var(--text-sub);">{{ b.created_at }}</td>
+          <td>
+            <form method="post"
+                  action="{{ url_for('admin_unblock_slot', block_id=b.id) }}"
+                  onsubmit="return confirm('Remove this block?')">
+              <button type="submit" class="btn btn-ghost btn-sm text-green">Unblock</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center; padding:2rem; color:var(--text-sub); font-size:0.85rem;">
+    No active blocks. All dates are open.
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

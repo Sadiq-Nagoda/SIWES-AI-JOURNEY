@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Home - {{ arena_name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Hero Section -->
+    <div class="card" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 3rem;">
+        <h1 class="text-4xl font-bold mb-2">Welcome to {{ arena_name }}</h1>
+        <p class="text-lg opacity-90">Book your football arena today and enjoy world-class facilities</p>
+        <p class="text-2xl font-bold mt-4">₦20,000 per hour</p>
+    </div>
+
+    <!-- Features Section -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="card text-center">
+            <i class="fas fa-calendar-check text-4xl text-blue-600 mb-3"></i>
+            <h3 class="font-bold text-lg mb-2">Easy Booking</h3>
+            <p class="text-gray-600">Book your preferred time slot in just a few clicks</p>
+        </div>
+        <div class="card text-center">
+            <i class="fas fa-credit-card text-4xl text-green-600 mb-3"></i>
+            <h3 class="font-bold text-lg mb-2">Flexible Payment</h3>
+            <p class="text-gray-600">Pay via bank transfer or card - your choice</p>
+        </div>
+        <div class="card text-center">
+            <i class="fas fa-receipt text-4xl text-purple-600 mb-3"></i>
+            <h3 class="font-bold text-lg mb-2">Instant Receipt</h3>
+            <p class="text-gray-600">Get your booking receipt immediately after payment</p>
+        </div>
+    </div>
+
+    <!-- Booking Section -->
+    <div class="card">
+        <h2 class="card-header">
+            <i class="fas fa-calendar"></i> Available Time Slots
+        </h2>
+        
+        <div class="form-group">
+            <label for="date-select">Select Date:</label>
+            <select id="date-select" class="mb-4">
+                <option value="">-- Choose a date --</option>
+                {% for date in next_30_days %}
+                    <option value="{{ date.strftime('%Y-%m-%d') }}">
+                        {{ date.strftime('%A, %B %d, %Y') }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="slots-container" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <p class="text-gray-500 col-span-full">Select a date to view available slots</p>
+        </div>
+
+        <div class="mt-6">
+            <a href="/book" class="btn btn-primary">
+                <i class="fas fa-arrow-right"></i> Proceed to Booking
+            </a>
+        </div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div class="card">
+        <h2 class="card-header">
+            <i class="fas fa-info-circle"></i> How It Works
+        </h2>
+        
+        <div class="space-y-4">
+            <div class="flex gap-4">
+                <div class="flex-shrink-0">
+                    <div class="flex items-center justify-center h-12 w-12 rounded-md bg-blue-600 text-white">
+                        <span class="font-bold">1</span>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg">Select Date & Time</h3>
+                    <p class="text-gray-600">Choose your preferred date and time slot from our availability calendar</p>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <div class="flex-shrink-0">
+                    <div class="flex items-center justify-center h-12 w-12 rounded-md bg-blue-600 text-white">
+                        <span class="font-bold">2</span>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg">Enter Your Details</h3>
+                    <p class="text-gray-600">Provide your team name and contact information</p>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <div class="flex-shrink-0">
+                    <div class="flex items-center justify-center h-12 w-12 rounded-md bg-blue-600 text-white">
+                        <span class="font-bold">3</span>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg">Choose Payment Method</h3>
+                    <p class="text-gray-600">Pay via bank transfer or card payment</p>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <div class="flex-shrink-0">
+                    <div class="flex items-center justify-center h-12 w-12 rounded-md bg-blue-600 text-white">
+                        <span class="font-bold">4</span>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg">Get Your Receipt</h3>
+                    <p class="text-gray-600">Download your booking receipt and confirmation</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="card bg-gray-50">
+        <h2 class="card-header">
+            <i class="fas fa-phone"></i> Contact Us
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <p class="font-bold text-lg mb-2">Phone</p>
+                <p class="text-gray-600">+234 (0) 123 456 7890</p>
+            </div>
+            <div>
+                <p class="font-bold text-lg mb-2">Email</p>
+                <p class="text-gray-600">bookings@maracanakano.com</p>
+            </div>
+            <div>
+                <p class="font-bold text-lg mb-2">Location</p>
+                <p class="text-gray-600">Kano, Nigeria</p>
+            </div>
+            <div>
+                <p class="font-bold text-lg mb-2">Hours</p>
+                <p class="text-gray-600">9:00 AM - 7:00 PM Daily</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Handle date selection and fetch available slots
+    document.getElementById('date-select').addEventListener('change', async function() {
+        const date = this.value;
+        const container = document.getElementById('slots-container');
+        
+        if (!date) {
+            container.innerHTML = '<p class="text-gray-500 col-span-full">Select a date to view available slots</p>';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/available-slots?date=${date}`);
+            const data = await response.json();
+            
+            if (data.available_slots.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 col-span-full">No available slots for this date</p>';
+                return;
+            }
+            
+            container.innerHTML = data.available_slots.map(slot => `
+                <div class="bg-green-50 border-2 border-green-500 rounded-lg p-4 text-center cursor-pointer hover:bg-green-100 transition" onclick="selectSlot('${date}', '${slot}')">
+                    <p class="font-bold text-green-700">${slot}</p>
+                    <p class="text-sm text-green-600">Available</p>
+                </div>
+            `).join('');
+        } catch (error) {
+            container.innerHTML = '<p class="text-red-500 col-span-full">Error loading slots</p>';
+            console.error('Error:', error);
+        }
+    });
+    
+    function selectSlot(date, slot) {
+        // Store selection and redirect to booking page
+        sessionStorage.setItem('selectedDate', date);
+        sessionStorage.setItem('selectedSlot', slot);
+        window.location.href = '/book';
+    }
+</script>
+{% endblock %}
